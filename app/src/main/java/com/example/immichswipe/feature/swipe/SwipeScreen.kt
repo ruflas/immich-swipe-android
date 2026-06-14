@@ -4,12 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ActivityInfo
-import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.MotionEvent
-import androidx.activity.compose.BackHandler
 import androidx.annotation.OptIn
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -92,130 +88,97 @@ fun SwipeScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
 
-    // États pour le plein écran gérés au niveau de l'écran pour une transition fluide
-    var fullscreenAsset by rememberSaveable(stateSaver = Asset.Saver) { mutableStateOf<Asset?>(null) }
-    var fullscreenPlayer by remember { mutableStateOf<Player?>(null) }
+    Column(
+        modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 1. Timeline (Barre du haut avec vignettes)
+        AssetTimeline(
+            assets = uiState.assets,
+            decisions = uiState.decisions,
+            currentIndex = uiState.currentIndex,
+            onAssetClick = { viewModel.onMoveToAsset(it) }
+        )
 
-    if (fullscreenAsset != null) {
-        BackHandler {
-            fullscreenAsset = null
-            fullscreenPlayer = null
-        }
-    }
-
-    Box(modifier = modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        // 2. Zone centrale : La pile de cartes
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            // 1. Timeline (Barre du haut avec vignettes)
-            AssetTimeline(
-                assets = uiState.assets,
-                decisions = uiState.decisions,
-                currentIndex = uiState.currentIndex,
-                onAssetClick = { viewModel.onMoveToAsset(it) }
-            )
+            if (uiState.isLoading) {
+                CircularProgressIndicator()
+            } else if (uiState.error != null) {
+                Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
+            } else if (uiState.currentIndex < uiState.assets.size) {
+                val currentIndex = uiState.currentIndex
+                val assets = uiState.assets
 
-            // 2. Zone centrale : La pile de cartes
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                if (uiState.isLoading) {
-                    CircularProgressIndicator()
-                } else if (uiState.error != null) {
-                    Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
-                } else if (uiState.currentIndex < uiState.assets.size) {
-                    val currentIndex = uiState.currentIndex
-                    val assets = uiState.assets
-                    
-                    val visibleIndices = (currentIndex until (currentIndex + 2).coerceAtMost(assets.size)).toList().reversed()
-                    
-                    visibleIndices.forEach { index ->
-                        val asset = assets[index]
-                        val isNextCard = index > currentIndex
-                        key(asset.id) {
-                            SwipeCard(
-                                asset = asset,
-                                onSwipe = { viewModel.onSwipe(it) },
-                                isNext = isNextCard,
-                                isFullscreenVisible = fullscreenAsset?.id == asset.id,
-                                onFullscreenRequest = { a, p ->
-                                    fullscreenAsset = a
-                                    fullscreenPlayer = p
-                                }
-                            )
-                        }
-                    }
-                } else {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            imageVector = Icons.Default.Celebration,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                // On affiche les 2 assets (courant et suivant) dans une seule boucle
+                // On inverse l'ordre (reversed) pour que l'asset courant (index plus petit)
+                // soit dessiné en dernier, donc au dessus dans la Box.
+                val visibleIndices = (currentIndex until (currentIndex + 2).coerceAtMost(assets.size)).toList().reversed()
+
+                visibleIndices.forEach { index ->
+                    val asset = assets[index]
+                    val isNextCard = index > currentIndex
+                    key(asset.id) {
+                        SwipeCard(
+                            asset = asset,
+                            onSwipe = { viewModel.onSwipe(it) },
+                            isNext = isNextCard
                         )
-                        Spacer(Modifier.height(16.dp))
-                        Text(text = "Félicitations ! Album trié.", fontWeight = FontWeight.Bold)
                     }
                 }
-            }
-
-            // 3. Barre d'actions en bas
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp, top = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FloatingActionButton(
-                    onClick = { viewModel.onSwipe(SwipeDecision.DELETE) },
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Supprimer")
-                }
-
-                IconButton(
-                    onClick = { viewModel.undo() },
-                    enabled = uiState.currentIndex > 0
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Annuler")
-                }
-
-                IconButton(onClick = { viewModel.onSwipe(SwipeDecision.SKIP) }) {
-                    Icon(Icons.AutoMirrored.Filled.Forward, contentDescription = "Passer")
-                }
-
-                FloatingActionButton(
-                    onClick = { viewModel.onSwipe(SwipeDecision.KEEP) },
-                    containerColor = MaterialGreen,
-                    contentColor = Color.White,
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = "Garder")
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Default.Celebration,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    Text(text = "Félicitations ! Album trié.", fontWeight = FontWeight.Bold)
                 }
             }
         }
 
-        // Overlay Plein Écran avec animation fluide
-        AnimatedVisibility(
-            visible = fullscreenAsset != null,
-            enter = fadeIn(tween(400)) + scaleIn(initialScale = 0.85f, animationSpec = tween(400)),
-            exit = fadeOut(tween(300)) + scaleOut(targetScale = 0.85f, animationSpec = tween(300))
+        // 3. Barre d'actions en bas
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp, top = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            fullscreenAsset?.let { asset ->
-                FullscreenViewer(
-                    asset = asset,
-                    player = fullscreenPlayer,
-                    onClose = {
-                        fullscreenAsset = null
-                        fullscreenPlayer = null
-                    }
-                )
+            FloatingActionButton(
+                onClick = { viewModel.onSwipe(SwipeDecision.DELETE) },
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Supprimer")
+            }
+
+            IconButton(
+                onClick = { viewModel.undo() },
+                enabled = uiState.currentIndex > 0
+            ) {
+                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Annuler")
+            }
+
+            IconButton(onClick = { viewModel.onSwipe(SwipeDecision.SKIP) }) {
+                Icon(Icons.AutoMirrored.Filled.Forward, contentDescription = "Passer")
+            }
+
+            FloatingActionButton(
+                onClick = { viewModel.onSwipe(SwipeDecision.KEEP) },
+                containerColor = MaterialGreen,
+                contentColor = Color.White,
+                shape = CircleShape
+            ) {
+                Icon(Icons.Default.Check, contentDescription = "Garder")
             }
         }
     }
@@ -229,7 +192,7 @@ fun AssetTimeline(
     onAssetClick: (Int) -> Unit
 ) {
     val listState = rememberLazyListState()
-    
+
     LaunchedEffect(currentIndex) {
         if (assets.isNotEmpty()) {
             listState.animateScrollToItem(currentIndex)
@@ -248,7 +211,7 @@ fun AssetTimeline(
         itemsIndexed(assets) { index, asset ->
             val decision = decisions[asset.id]
             val isCurrent = index == currentIndex
-            
+
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -284,7 +247,7 @@ fun AssetTimeline(
                             .background(Color.Black.copy(alpha = 0.4f), CircleShape)
                     )
                 }
-                
+
                 if (decision != null) {
                     Box(
                         modifier = Modifier
@@ -323,9 +286,7 @@ fun AssetTimeline(
 fun SwipeCard(
     asset: Asset,
     onSwipe: (SwipeDecision) -> Unit,
-    isNext: Boolean,
-    isFullscreenVisible: Boolean,
-    onFullscreenRequest: (Asset, Player?) -> Unit
+    isNext: Boolean
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -335,12 +296,15 @@ fun SwipeCard(
     val scope = rememberCoroutineScope()
     val offsetX = remember { Animatable(0f) }
     val offsetY = remember { Animatable(0f) }
+    var isFullscreenOpen by rememberSaveable { mutableStateOf(false) }
 
     // Hauteur du panneau de métadonnées
     val metadataHeight = 300.dp
     val metadataHeightPx = with(density) { metadataHeight.toPx() }
 
     // On crée un Player unique pour cette carte si c'est une vidéo
+    // On ajoute isNext dans les clés du remember pour que le player soit créé
+    // au moment où la carte passe du second plan au premier plan.
     val exoPlayer = remember(asset.id, isNext) {
         if (asset.type == "VIDEO" && !isNext) {
             ExoPlayer.Builder(context).build().apply {
@@ -381,6 +345,7 @@ fun SwipeCard(
                     scaleY = animatedScale
                     if (!isNext) {
                         translationX = offsetX.value
+                        // Photo reste fixe verticalement (offsetY utilisé pour les métadonnées)
                         rotationZ = offsetX.value / 40f
                     }
                 }
@@ -391,7 +356,7 @@ fun SwipeCard(
                             scope.launch {
                                 val currentX = offsetX.value
                                 val currentY = offsetY.value
-                                
+
                                 if (currentX > 400) {
                                     offsetX.animateTo(1500f, tween(250))
                                     onSwipe(SwipeDecision.KEEP)
@@ -400,15 +365,20 @@ fun SwipeCard(
                                     onSwipe(SwipeDecision.DELETE)
                                 } else {
                                     launch { offsetX.animateTo(0f, spring(dampingRatio = Spring.DampingRatioLowBouncy)) }
-                                    
+
+                                    // Aimantage métadonnées :
+                                    // Si on est en train d'ouvrir (Y < 0) et qu'on dépasse 25% de la hauteur -> on finit l'ouverture
+                                    // Gestion du "cran" pour les métadonnées (Y)
                                     val wasOpen = offsetY.targetValue < -metadataHeightPx / 2
                                     if (wasOpen) {
+                                        // Si c'était ouvert, on ferme au moindre geste vers le bas (seuil 90% de hauteur)
                                         if (currentY < -metadataHeightPx * 0.9f) {
                                             offsetY.animateTo(-metadataHeightPx, spring(dampingRatio = Spring.DampingRatioLowBouncy))
                                         } else {
                                             offsetY.animateTo(0f, spring(dampingRatio = Spring.DampingRatioLowBouncy))
                                         }
                                     } else {
+                                        // Si c'était fermé, on ouvre si on dépasse 10% de la hauteur vers le haut
                                         if (currentY < -metadataHeightPx * 0.1f) {
                                             offsetY.animateTo(-metadataHeightPx, spring(dampingRatio = Spring.DampingRatioLowBouncy))
                                         } else {
@@ -420,7 +390,7 @@ fun SwipeCard(
                         },
                         onDrag = { change, dragAmount ->
                             change.consume()
-                            scope.launch { 
+                            scope.launch {
                                 offsetX.snapTo(offsetX.value + dragAmount.x)
                                 offsetY.snapTo((offsetY.value + dragAmount.y).coerceIn(-metadataHeightPx, 0f))
                             }
@@ -432,11 +402,14 @@ fun SwipeCard(
         ) {
             Box(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(16.dp))) {
                 if (asset.type == "VIDEO" && !isNext && exoPlayer != null) {
-                    if (!isFullscreenVisible) {
+                    // On ne garde qu'un seul PlayerView actif à la fois pour le même player
+                    // Si le plein écran est ouvert, on cache celui de la carte pour qu'il puisse
+                    // être ré-attaché proprement au retour.
+                    if (!isFullscreenOpen) {
                         SharedVideoPlayer(
                             player = exoPlayer,
                             isFullscreen = false,
-                            onDoubleTap = { onFullscreenRequest(asset, exoPlayer) }
+                            onDoubleTap = { isFullscreenOpen = true }
                         )
                     } else {
                         // Image de remplacement pendant que le player est utilisé en plein écran
@@ -464,7 +437,7 @@ fun SwipeCard(
                             .then(
                                 if (!isNext) {
                                     Modifier.pointerInput(Unit) {
-                                        detectTapGestures(onDoubleTap = { onFullscreenRequest(asset, exoPlayer) })
+                                        detectTapGestures(onDoubleTap = { isFullscreenOpen = true })
                                     }
                                 } else Modifier
                             )
@@ -474,7 +447,7 @@ fun SwipeCard(
                 // Bouton Plein Écran
                 if (!isNext) {
                     IconButton(
-                        onClick = { onFullscreenRequest(asset, exoPlayer) },
+                        onClick = { isFullscreenOpen = true },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(8.dp)
@@ -530,42 +503,42 @@ fun SharedVideoPlayer(
 ) {
     AndroidView(
         factory = { context ->
+            // On utilise un layout XML pour pouvoir spécifier le surface_type="texture_view"
+            // car le setter setSurfaceType n'est pas public dans Media3 PlayerView.
             val view = LayoutInflater.from(context).inflate(R.layout.view_player_texture, null) as PlayerView
-            
-            // Détection du double-tap sur la vue Android native pour contourner la consommation d'événements interne
-            val gestureDetector = GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
-                override fun onDoubleTap(e: MotionEvent): Boolean {
-                    onDoubleTap?.invoke()
-                    return true
-                }
-            })
-            
-            view.setOnTouchListener { v, event ->
-                gestureDetector.onTouchEvent(event)
-                // On laisse le PlayerView continuer à traiter l'événement pour les contrôles
-                false
-            }
-            
             view
         },
         update = { view ->
+            // Re-attache le player si nécessaire
             if (view.player != player) view.player = player
             view.useController = isFullscreen
-            
+
+            // TextureView est indispensable pour une intégration parfaite avec les couches Compose
+            // Cela évite les écrans noirs au retour du plein écran.
             view.resizeMode = if (isFullscreen) {
                 androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
             } else {
                 androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
             }
-            
+
+            // S'assure que la lecture reprend bien
             if (player.playbackState == Player.STATE_READY && !player.isPlaying) {
                 player.play()
             }
         },
         onRelease = { view ->
+            // Détache proprement le player de la vue avant destruction
             view.player = null
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (onDoubleTap != null) {
+                    Modifier.pointerInput(onDoubleTap) {
+                        detectTapGestures(onDoubleTap = { onDoubleTap() })
+                    }
+                } else Modifier
+            )
     )
 }
 
@@ -579,47 +552,27 @@ fun FullscreenViewer(
     val activity = remember(context) { context.findActivity() }
     val scope = rememberCoroutineScope()
     val swipeY = remember { Animatable(0f) }
-    
-    // Animation d'entrée et de sortie
-    val animProgress = remember { Animatable(0f) }
-    
-    LaunchedEffect(Unit) {
-        animProgress.animateTo(1f, tween(300, easing = LinearOutSlowInEasing))
-    }
 
-    val safeOnClose = {
-        scope.launch {
-            animProgress.animateTo(0f, tween(250, easing = FastOutLinearInEasing))
-            onClose()
-        }
-    }
-    
     DisposableEffect(Unit) {
         activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
         onDispose { activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT }
     }
 
     Dialog(
-        onDismissRequest = { safeOnClose() },
+        onDismissRequest = onClose,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer {
-                    val scale = 0.95f + (0.05f * animProgress.value)
-                    scaleX = scale
-                    scaleY = scale
-                    alpha = animProgress.value
-                }
-                .background(Color.Black.copy(alpha = ((1f - (swipeY.value / 1000f)).coerceIn(0f, 1f) * animProgress.value)))
+                .background(Color.Black.copy(alpha = (1f - (swipeY.value / 1000f)).coerceIn(0f, 1f)))
                 .pointerInput(Unit) {
-                    detectTapGestures(onDoubleTap = { safeOnClose() })
+                    detectTapGestures(onDoubleTap = { onClose() })
                 }
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragEnd = {
-                            if (swipeY.value > 300) safeOnClose()
+                            if (swipeY.value > 300) onClose()
                             else scope.launch { swipeY.animateTo(0f) }
                         },
                         onDrag = { change, dragAmount ->
@@ -632,11 +585,7 @@ fun FullscreenViewer(
             contentAlignment = Alignment.Center
         ) {
             if (asset.type == "VIDEO" && player != null) {
-                SharedVideoPlayer(
-                    player = player,
-                    isFullscreen = true,
-                    onDoubleTap = { safeOnClose() }
-                )
+                SharedVideoPlayer(player = player, isFullscreen = true)
             } else {
                 val baseUrlClean = SessionManager.getBaseUrl()?.removeSuffix("/")
                 AsyncImage(
@@ -651,7 +600,7 @@ fun FullscreenViewer(
             }
 
             IconButton(
-                onClick = { safeOnClose() },
+                onClick = onClose,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(vertical = 50.dp, horizontal = 20.dp)
