@@ -78,6 +78,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 
 private val MaterialGreen = Color(0xFF2E7D32) // Un vert plus profond (Green 800)
 private val MaterialRed = Color(0xFFC62828)   // Un rouge plus marqué (Red 800)
@@ -1103,6 +1106,20 @@ fun MetadataRow(icon: ImageVector, label: String, value: String) {
     }
 }
 
+/**
+ * Formate une taille en bytes vers une chaîne lisible (Go, Mo).
+ */
+fun formatSize(bytes: Long): String {
+    val kb = bytes / 1024.0
+    val mb = kb / 1024.0
+    val gb = mb / 1024.0
+    return when {
+        gb >= 1.0 -> String.format(Locale.getDefault(), "%.2f Go", gb)
+        mb >= 1.0 -> String.format(Locale.getDefault(), "%.1f Mo", mb)
+        else -> String.format(Locale.getDefault(), "%.0f Ko", kb)
+    }
+}
+
 @Composable
 fun SummaryDialog(
     uiState: SwipeUiState,
@@ -1112,94 +1129,128 @@ fun SummaryDialog(
 ) {
     AlertDialog(
         onDismissRequest = if (uiState.isSyncing) ({}) else onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.fillMaxWidth(0.95f),
         title = {
-            Text(
-                text = "Résumé du tri",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Résumé du tri",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold
+                )
+                IconButton(onClick = onDismiss, enabled = !uiState.isSyncing) {
+                    Icon(Icons.Default.Close, contentDescription = null)
+                }
+            }
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "Album : ${uiState.albumName}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    text = uiState.albumName,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
                 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(20.dp))
                 
-                // Statistiques rapides
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    StatSummaryBox(label = "Gardés", count = uiState.keptCount, color = MaterialGreen)
-                    StatSummaryBox(label = "Passés", count = uiState.skippedCount, color = Color.Gray)
+                // Grille de statistiques (2x2)
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        StatSummaryBox(
+                            label = "Gardés",
+                            count = uiState.keptCount,
+                            size = uiState.keptSize,
+                            color = Color(0xFF388E3C),
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatSummaryBox(
+                            label = "Supprimés",
+                            count = uiState.deletedCount,
+                            size = uiState.deletedSize,
+                            color = Color(0xFFD32F2F),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                        StatSummaryBox(
+                            label = "Passés",
+                            count = uiState.skippedCount,
+                            size = uiState.skippedSize,
+                            color = Color(0xFF757575),
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatSummaryBox(
+                            label = "Restants",
+                            count = uiState.remainingCount,
+                            size = uiState.remainingSize,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(24.dp))
 
-                // Section "À Supprimer" avec miniatures
+                // Liste des miniatures à supprimer
                 Text(
-                    text = "À supprimer (${uiState.deletedCount})",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialRed
+                    text = "Vérifiez avant suppression",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
                 )
                 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(12.dp))
 
-                if (uiState.deletedCount > 0) {
-                    val deletedAssets = uiState.assets.filter { uiState.decisions[it.id] == SwipeDecision.DELETE }
-                    
-                    Box(modifier = Modifier.height(120.dp).fillMaxWidth()) {
-                        LazyRow(
+                val deletedAssets = remember(uiState.decisions) {
+                    uiState.assets.filter { uiState.decisions[it.id] == SwipeDecision.DELETE }
+                }
+
+                if (deletedAssets.isNotEmpty()) {
+                    Box(modifier = Modifier.height(220.dp).fillMaxWidth()) {
+                        LazyVerticalGrid(
+                            columns = GridCells.Fixed(3),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            contentPadding = PaddingValues(end = 16.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(bottom = 16.dp)
                         ) {
-                            items(deletedAssets) { asset ->
+                            items(
+                                items = deletedAssets,
+                                key = { it.id }
+                            ) { asset ->
                                 DeletedAssetThumbnail(
                                     asset = asset,
-                                    onUndo = { onUndoDecision(asset.id) }
+                                    onUndo = { onUndoDecision(asset.id) },
+                                    modifier = Modifier.animateItem()
                                 )
                             }
                         }
                     }
                 } else {
-                    Text(
-                        "Aucune photo à supprimer.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.outline,
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(100.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                "Aucune photo à supprimer.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                        }
+                    }
                 }
 
-                if (uiState.remainingCount > 0) {
-                    Spacer(Modifier.height(16.dp))
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(
-                            text = "Note : Il reste encore ${uiState.remainingCount} photos à trier.",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.padding(8.dp),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
                 if (uiState.isSyncing) {
-                    Spacer(Modifier.height(24.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.width(12.dp))
-                        Text("Synchronisation avec Immich...", style = MaterialTheme.typography.bodyMedium)
-                    }
+                    Spacer(Modifier.height(16.dp))
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth().clip(CircleShape),
+                        color = Color(0xFFD32F2F)
+                    )
                 }
             }
         },
@@ -1207,49 +1258,74 @@ fun SummaryDialog(
             Button(
                 onClick = onApply,
                 enabled = !uiState.isSyncing && uiState.deletedCount > 0,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialRed),
-                shape = RoundedCornerShape(12.dp)
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F)),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
             ) {
-                if (uiState.isSyncing) {
-                    Text("En cours...")
-                } else {
-                    Text("Confirmer la suppression")
-                }
+                val totalSize = formatSize(uiState.deletedSize)
+                Text(
+                    text = if (uiState.isSyncing) "Synchronisation..." else "Libérer $totalSize (${uiState.deletedCount} items)",
+                    fontWeight = FontWeight.Bold
+                )
             }
         },
-        dismissButton = {
-            TextButton(
-                onClick = onDismiss,
-                enabled = !uiState.isSyncing
-            ) {
-                Text("Retour")
-            }
-        },
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(32.dp)
     )
 }
 
 @Composable
-fun StatSummaryBox(label: String, count: Int, color: Color) {
-    Column(
-        modifier = Modifier
-            .background(color.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+fun StatSummaryBox(
+    label: String,
+    count: Int,
+    size: Long,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = color.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, color.copy(alpha = 0.2f))
     ) {
-        Text(text = count.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = color.copy(alpha = 0.8f))
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = color,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = formatSize(size),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
 @Composable
-fun DeletedAssetThumbnail(asset: Asset, onUndo: () -> Unit) {
+fun DeletedAssetThumbnail(
+    asset: Asset,
+    onUndo: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val baseUrl = SessionManager.getBaseUrl()?.removeSuffix("/")
     val apiKey = SessionManager.getApiKey() ?: ""
 
     Box(
-        modifier = Modifier
-            .size(100.dp)
-            .clip(RoundedCornerShape(8.dp))
+        modifier = modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(12.dp))
             .clickable { onUndo() }
     ) {
         AsyncImage(
@@ -1262,19 +1338,52 @@ fun DeletedAssetThumbnail(asset: Asset, onUndo: () -> Unit) {
             modifier = Modifier.fillMaxSize()
         )
         
-        // Overlay pour l'annulation
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.2f)),
-            contentAlignment = Alignment.Center
+        // Petit badge "Undo" discret en haut à droite
+        Surface(
+            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
+            color = Color.Black.copy(alpha = 0.6f),
+            shape = CircleShape
         ) {
             Icon(
-                imageVector = Icons.Default.Undo,
-                contentDescription = "Annuler",
+                imageVector = Icons.Default.Close,
+                contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(24.dp).background(Color.Black.copy(alpha = 0.4f), CircleShape).padding(4.dp)
+                modifier = Modifier.size(16.dp).padding(2.dp)
             )
+        }
+        
+        // Icône "Play" pour les vidéos dans le résumé
+        if (asset.type == "VIDEO") {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(4.dp)
+                    .size(16.dp)
+                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+            )
+        }
+
+        // Affichage de la taille de l'asset en bas
+        val assetSize = asset.exifInfo?.fileSizeInBytes ?: 0L
+        if (assetSize > 0) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.5f))))
+                    .padding(4.dp)
+            ) {
+                Text(
+                    text = formatSize(assetSize),
+                    color = Color.White,
+                    fontSize = 9.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
         }
     }
 }

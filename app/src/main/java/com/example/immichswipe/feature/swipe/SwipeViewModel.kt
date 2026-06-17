@@ -141,11 +141,11 @@ class SwipeViewModel(
         val newHistory = currentState.history.toMutableList()
         newHistory.add(currentAsset.id)
 
-        // Trouver le prochain asset non traité
+        // Trouver le prochain asset à afficher
         val assets = currentState.assets
         var nextIndex = -1
         
-        // On cherche après l'index actuel
+        // 1. Chercher d'abord la prochaine photo NON TRAITÉE après l'actuelle
         for (i in (currentState.currentIndex + 1) until assets.size) {
             if (!newDecisions.containsKey(assets[i].id)) {
                 nextIndex = i
@@ -153,7 +153,7 @@ class SwipeViewModel(
             }
         }
         
-        // Si non trouvé, repartir du début
+        // 2. Si rien trouvé après, chercher une photo NON TRAITÉE depuis le début (boucle)
         if (nextIndex == -1) {
             for (i in 0 until currentState.currentIndex) {
                 if (!newDecisions.containsKey(assets[i].id)) {
@@ -163,9 +163,13 @@ class SwipeViewModel(
             }
         }
         
-        // Si toujours rien, on a fini l'album
+        // 3. Si TOUT est traité (Mode Revue), on passe simplement au suivant dans l'ordre de la liste
         if (nextIndex == -1) {
-            nextIndex = assets.size
+            if (currentState.currentIndex + 1 < assets.size) {
+                nextIndex = currentState.currentIndex + 1
+            } else {
+                nextIndex = assets.size // Fin réelle de l'album
+            }
         }
 
         _uiState.value = currentState.copy(
@@ -311,7 +315,8 @@ class SwipeViewModel(
     }
 
     /**
-     * Calcule l'index du prochain asset non traité à afficher en arrière-plan.
+     * Calcule l'index du prochain asset à afficher en arrière-plan.
+     * Priorité aux non-traités, sinon le suivant dans la liste.
      */
     fun getNextUnprocessedIndex(): Int {
         val state = _uiState.value
@@ -319,14 +324,19 @@ class SwipeViewModel(
         val decisions = state.decisions
         val current = state.currentIndex
 
-        // 1. Chercher après l'index actuel
+        // 1. Chercher le prochain non-traité après
         for (i in (current + 1) until assets.size) {
             if (!decisions.containsKey(assets[i].id)) return i
         }
         
-        // 2. Sinon, chercher avant (boucle)
+        // 2. Chercher le prochain non-traité avant
         for (i in 0 until current) {
             if (!decisions.containsKey(assets[i].id)) return i
+        }
+
+        // 3. Si tout est traité, on affiche simplement la carte suivante dans la liste
+        if (current + 1 < assets.size) {
+            return current + 1
         }
         
         return -1

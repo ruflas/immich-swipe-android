@@ -40,6 +40,12 @@ data class SwipeUiState(
     val skippedCount: Int get() = decisions.values.count { it == SwipeDecision.SKIP }
     val remainingCount: Int get() = totalCount - processedCount
     
+    // Calcul des poids (en bytes)
+    val keptSize: Long get() = assets.filter { decisions[it.id] == SwipeDecision.KEEP }.sumOf { it.exifInfo?.fileSizeInBytes ?: 0L }
+    val deletedSize: Long get() = assets.filter { decisions[it.id] == SwipeDecision.DELETE }.sumOf { it.exifInfo?.fileSizeInBytes ?: 0L }
+    val skippedSize: Long get() = assets.filter { decisions[it.id] == SwipeDecision.SKIP }.sumOf { it.exifInfo?.fileSizeInBytes ?: 0L }
+    val remainingSize: Long get() = assets.filter { !decisions.containsKey(it.id) }.sumOf { it.exifInfo?.fileSizeInBytes ?: 0L }
+
     // Progression (0.0f à 1.0f)
     val progress: Float get() = if (totalCount > 0) processedCount.toFloat() / totalCount else 0f
 }
