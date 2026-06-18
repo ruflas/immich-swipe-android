@@ -40,6 +40,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.example.immichswipe.R
 import com.example.immichswipe.core.PlaybackBehavior
@@ -137,27 +138,39 @@ fun HomeScreen(
                                 .clip(CircleShape)
                                 .clickable { viewModel.toggleProfilePopup(true) }
 
-                            if ((userId != null) && (baseUrl != null)) {
-                                val cleanBaseUrl = baseUrl.removeSuffix("/")
-                                AsyncImage(
-                                    model = ImageRequest.Builder(LocalContext.current)
-                                        .data("$cleanBaseUrl/api/users/$userId/profile-image")
-                                        .addHeader("x-api-key", SessionManager.getApiKey() ?: "")
-                                        .crossfade(true)
-                                        .build(),
-                                    contentDescription = "Profile Picture",
-                                    placeholder = rememberVectorPainter(Icons.Default.AccountCircle),
-                                    error = rememberVectorPainter(Icons.Default.AccountCircle),
-                                    modifier = profileModifier,
-                                    contentScale = ContentScale.Crop
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.AccountCircle,
-                                    contentDescription = "Default Profile",
-                                    modifier = profileModifier,
-                                    tint = MaterialTheme.colorScheme.outline
-                                )
+                            Box(contentAlignment = Alignment.BottomEnd) {
+                                if ((userId != null) && (baseUrl != null)) {
+                                    val cleanBaseUrl = baseUrl.removeSuffix("/")
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data("$cleanBaseUrl/api/users/$userId/profile-image")
+                                            .addHeader("x-api-key", SessionManager.getApiKey() ?: "")
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Profile Picture",
+                                        placeholder = rememberVectorPainter(Icons.Default.AccountCircle),
+                                        error = rememberVectorPainter(Icons.Default.AccountCircle),
+                                        modifier = profileModifier,
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.AccountCircle,
+                                        contentDescription = "Default Profile",
+                                        modifier = profileModifier,
+                                        tint = MaterialTheme.colorScheme.outline
+                                    )
+                                }
+
+                                // Indicateur de connexion (Badge vert/rouge)
+                                Surface(
+                                    modifier = Modifier
+                                        .padding(end = 16.dp, bottom = 2.dp)
+                                        .size(10.dp)
+                                        .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                                    color = if (uiState.isServerReachable) Color(0xFF4CAF50) else Color(0xFFF44336),
+                                    shape = CircleShape
+                                ) {}
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -571,8 +584,9 @@ fun AlbumGrid(
 
 @Composable
 fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick: () -> Unit) {
-    val baseUrl = SessionManager.getBaseUrl()?.removeSuffix("/")
-    val apiKey = SessionManager.getApiKey() ?: ""
+    val context = LocalContext.current
+    val baseUrl = remember { SessionManager.getBaseUrl()?.removeSuffix("/") }
+    val apiKey = remember { SessionManager.getApiKey() ?: "" }
     val progress = if (album.assetCount > 0) treatedCount.toFloat() / album.assetCount else 0f
     val isCompleted = treatedCount >= album.assetCount && album.assetCount > 0
     val isNotStarted = treatedCount == 0
@@ -589,12 +603,19 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
         Box(modifier = Modifier.fillMaxSize()) {
             // Image de fond
             if (album.albumThumbnailAssetId != null && baseUrl != null) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
+                // On pré-construit la requête Coil de manière stable pour optimiser la fluidité du scroll
+                val imageRequest = remember(album.albumThumbnailAssetId, baseUrl, apiKey) {
+                    ImageRequest.Builder(context)
                         .data("$baseUrl/api/assets/${album.albumThumbnailAssetId}/thumbnail?format=WEBP")
                         .addHeader("x-api-key", apiKey)
                         .crossfade(true)
-                        .build(),
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .build()
+                }
+
+                AsyncImage(
+                    model = imageRequest,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -702,8 +723,9 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
 
 @Composable
 fun AlbumItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick: () -> Unit) {
-    val baseUrl = SessionManager.getBaseUrl()?.removeSuffix("/")
-    val apiKey = SessionManager.getApiKey() ?: ""
+    val context = LocalContext.current
+    val baseUrl = remember { SessionManager.getBaseUrl()?.removeSuffix("/") }
+    val apiKey = remember { SessionManager.getApiKey() ?: "" }
     val progress = if (album.assetCount > 0) treatedCount.toFloat() / album.assetCount else 0f
     val isCompleted = treatedCount >= album.assetCount && album.assetCount > 0
     val isNotStarted = treatedCount == 0
@@ -730,12 +752,18 @@ fun AlbumItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick:
                         color = MaterialTheme.colorScheme.primaryContainer
                     ) {
                         if (album.albumThumbnailAssetId != null && baseUrl != null) {
-                            AsyncImage(
-                                model = ImageRequest.Builder(LocalContext.current)
+                            val imageRequest = remember(album.albumThumbnailAssetId, baseUrl, apiKey) {
+                                ImageRequest.Builder(context)
                                     .data("$baseUrl/api/assets/${album.albumThumbnailAssetId}/thumbnail?format=WEBP")
                                     .addHeader("x-api-key", apiKey)
                                     .crossfade(true)
-                                    .build(),
+                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .build()
+                            }
+
+                            AsyncImage(
+                                model = imageRequest,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 placeholder = rememberVectorPainter(Icons.Default.PhotoLibrary),

@@ -57,6 +57,15 @@ class HomeViewModel(
             _uiState.update { it.copy(isGridView = isGrid) }
         }
 
+        // SOLUTION : Observe l'état de portée du serveur de manière GLOBALE.
+        // Puisque SessionManager met à jour son Flow à chaque requête réseau,
+        // la pastille réagira à tout (refresh, swipe, vidéo, etc.)
+        viewModelScope.launch {
+            SessionManager.isServerReachable.collect { reachable ->
+                _uiState.update { it.copy(isServerReachable = reachable) }
+            }
+        }
+
         // Observe les décisions locales pour mettre à jour les barres de progression
         viewModelScope.launch {
             swipeDecisionRepository.getAllAlbumDecisionCounts().collect { stats ->
@@ -79,11 +88,19 @@ class HomeViewModel(
                 val user = userRepository.getCurrentUser()
                 val albums = albumRepository.refreshAlbums()
                 _uiState.update { 
-                    it.copy(user = user, albums = albums, isLoading = false, error = null)
+                    it.copy(
+                        user = user, 
+                        albums = albums, 
+                        isLoading = false, 
+                        error = null
+                    )
                 }
             } catch (e: Exception) {
                 _uiState.update { 
-                    it.copy(error = e.message ?: "Erreur de chargement", isLoading = false)
+                    it.copy(
+                        error = e.message ?: "Erreur de chargement", 
+                        isLoading = false
+                    )
                 }
             }
         }
@@ -93,10 +110,32 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isRefreshing = true) }
             try {
+                // On mémorise l'heure de début
+                val startTime = System.currentTimeMillis()
+                
+                // On lance la requête
                 val albums = albumRepository.refreshAlbums()
-                _uiState.update { it.copy(albums = albums, isRefreshing = false, error = null) }
+                
+                // On calcule combien de temps a duré la requête
+                val duration = System.currentTimeMillis() - startTime
+                // On attend le complément pour atteindre au moins 800ms
+                if (duration < 800) {
+                    delay(800 - duration)
+                }
+
+                _uiState.update { 
+                    it.copy(
+                        albums = albums, 
+                        isRefreshing = false, 
+                        error = null
+                    ) 
+                }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isRefreshing = false) }
+                _uiState.update { 
+                    it.copy(
+                        isRefreshing = false
+                    ) 
+                }
             }
         }
     }

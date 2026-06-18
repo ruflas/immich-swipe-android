@@ -32,7 +32,8 @@ data class HomeUiState(
     // Map pour stocker le nombre de suppressions en attente par albumId
     val albumPendingDeletes: Map<String, Int> = emptyMap(),
     val isGridView: Boolean = false, // Toggle entre liste et grille
-    val searchQuery: String = "" // Texte de recherche pour filtrer les albums
+    val searchQuery: String = "", // Texte de recherche pour filtrer les albums
+    val isServerReachable: Boolean = true // Indique si le serveur Immich est joignable
 ) {
     /**
      * Retourne la liste des albums filtrée par le texte de recherche.

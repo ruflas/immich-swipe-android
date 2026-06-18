@@ -1,20 +1,22 @@
 package com.example.immichswipe.data.api
 
 import com.example.immichswipe.core.SessionConfig
+import com.example.immichswipe.core.SessionManager
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.IOException
 
 object RetrofitFactory {
     fun create(config: SessionConfig): ImmichApi {
-        // Intercepteur pour logger les requêtes et réponses HTTP (très utile pour le débogage)
+        // Intercepteur pour logger les requêtes
         val logging = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = HttpLoggingInterceptor.Level.HEADERS
         }
 
-        // Intercepteur pour ajouter automatiquement la clé API dans les headers de chaque requête.
+        // Intercepteur pour ajouter la clé API
         val apiKeyInterceptor = Interceptor { chain ->
             val request = chain.request()
                 .newBuilder()
@@ -23,8 +25,24 @@ object RetrofitFactory {
             chain.proceed(request)
         }
 
+        // SOLUTION : Intercepteur global de connectivité.
+        // Il intercepte TOUTES les requêtes réseau et met à jour l'état de la pastille.
+        val connectivityInterceptor = Interceptor { chain ->
+            try {
+                val response = chain.proceed(chain.request())
+                // Si on a une réponse (même une erreur 4xx ou 5xx), le serveur a répondu.
+                SessionManager.updateReachability(true)
+                response
+            } catch (e: IOException) {
+                // Si on a une exception réseau (timeout, pas d'internet, etc.), le serveur est injoignable.
+                SessionManager.updateReachability(false)
+                throw e
+            }
+        }
+
         val client = OkHttpClient.Builder()
             .addInterceptor(apiKeyInterceptor)
+            .addInterceptor(connectivityInterceptor)
             .addInterceptor(logging)
             .build()
 
