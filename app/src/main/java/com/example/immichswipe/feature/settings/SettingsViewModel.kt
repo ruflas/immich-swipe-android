@@ -8,6 +8,7 @@ import com.example.immichswipe.core.IconPosition
 import com.example.immichswipe.core.PlaybackBehavior
 import com.example.immichswipe.core.SessionManager
 import com.example.immichswipe.data.repository.SessionRepository
+import com.example.immichswipe.data.repository.SwipeDecisionRepository
 import com.example.immichswipe.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val swipeDecisionRepository: SwipeDecisionRepository
 ) : ViewModel() {
 
     private val userRepository by lazy {
@@ -74,6 +76,11 @@ class SettingsViewModel(
                 _uiState.value = _uiState.value.copy(isDefaultLayoutGrid = isGrid)
             }
         }
+        viewModelScope.launch {
+            sessionRepository.skipLifespanDays.collect { days ->
+                _uiState.value = _uiState.value.copy(skipLifespanDays = days)
+            }
+        }
     }
 
     fun setPlaybackBehavior(behavior: PlaybackBehavior) {
@@ -112,6 +119,42 @@ class SettingsViewModel(
         }
     }
 
+    fun requestSkipLifespanChange(days: Long) {
+        val currentDays = _uiState.value.skipLifespanDays
+        
+        // On détermine si on doit afficher l'alerte :
+        // 1. Si on passe de "Jamais" (0) à une durée limitée -> Alerte (car on réduit l'infini)
+        // 2. Si on réduit une durée existante (ex: de 30j à 7j) -> Alerte
+        val isReduction = (currentDays == 0L && days > 0L) || (currentDays > 0L && days > 0L && days < currentDays)
+        
+        if (isReduction) {
+            _uiState.value = _uiState.value.copy(showSkipLifespanWarning = days)
+        } else {
+            // Sinon, on applique directement
+            viewModelScope.launch {
+                sessionRepository.saveSkipLifespan(days)
+                // Nettoyage au cas où (même si peu probable que ça supprime en augmentant)
+                if (days > 0) swipeDecisionRepository.cleanExpiredSkips(days)
+            }
+        }
+    }
+
+    fun confirmSkipLifespanChange() {
+        val targetDays = _uiState.value.showSkipLifespanWarning ?: return
+        viewModelScope.launch {
+            sessionRepository.saveSkipLifespan(targetDays)
+            // On lance un nettoyage immédiat si une durée a été définie
+            if (targetDays > 0) {
+                swipeDecisionRepository.cleanExpiredSkips(targetDays)
+            }
+            _uiState.value = _uiState.value.copy(showSkipLifespanWarning = null)
+        }
+    }
+
+    fun dismissSkipLifespanWarning() {
+        _uiState.value = _uiState.value.copy(showSkipLifespanWarning = null)
+    }
+
     fun logout() {
         viewModelScope.launch {
             sessionRepository.clearSession()
@@ -120,12 +163,13 @@ class SettingsViewModel(
 }
 
 class SettingsViewModelFactory(
-    private val sessionRepository: SessionRepository
+    private val sessionRepository: SessionRepository,
+    private val swipeDecisionRepository: SwipeDecisionRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return SettingsViewModel(sessionRepository) as T
+            return SettingsViewModel(sessionRepository, swipeDecisionRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

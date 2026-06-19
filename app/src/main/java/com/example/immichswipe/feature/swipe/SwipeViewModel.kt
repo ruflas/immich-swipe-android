@@ -31,6 +31,15 @@ class SwipeViewModel(
         observeSwipeInversion()
         observeFullscreenButtonPosition()
         observeImmichButtonPosition()
+        observeSkipLifespan()
+    }
+
+    private fun observeSkipLifespan() {
+        viewModelScope.launch {
+            sessionRepository.skipLifespanDays.collect { days ->
+                _uiState.value = _uiState.value.copy(skipLifespanDays = days)
+            }
+        }
     }
 
     /**
@@ -86,8 +95,27 @@ class SwipeViewModel(
                 // On utilise first() pour avoir une photo à l'instant T sans observer en continu ici
                 val localDecisions = swipeDecisionRepository.getDecisionsForAlbum(album.id).first()
                 
+                // Durée d'expiration en millisecondes
+                val lifespanDays = sessionRepository.skipLifespanDays.first()
+                val lifespanMs = lifespanDays * 24 * 60 * 60 * 1000L
+                val currentTime = System.currentTimeMillis()
+
+                // On nettoie réellement la base de données pour les SKIP expirés
+                if (lifespanDays > 0) {
+                    swipeDecisionRepository.cleanExpiredSkips(lifespanDays)
+                }
+
                 // On transforme la liste de SwipeDecisionEntity en Map<String, SwipeDecision>
-                val decisionMap = localDecisions.associate { entity ->
+                // On filtre les SKIP expirés (au cas où le cleanup prend du temps)
+                val decisionMap = localDecisions.filter { entity ->
+                    val decision = SwipeDecision.valueOf(entity.decision)
+                    if (decision == SwipeDecision.SKIP && lifespanDays > 0) {
+                        val isExpired = (currentTime - entity.createdAt) > lifespanMs
+                        !isExpired
+                    } else {
+                        true
+                    }
+                }.associate { entity ->
                     entity.assetId to SwipeDecision.valueOf(entity.decision)
                 }.toMutableMap()
 

@@ -21,6 +21,7 @@ class SessionDataStore(private val context: Context) {
         private val KEY_FULLSCREEN_ICON_POS = stringPreferencesKey("fullscreen_icon_pos")
         private val KEY_IMMICH_ICON_POS = stringPreferencesKey("immich_icon_pos")
         private val KEY_DEFAULT_LAYOUT_GRID = androidx.datastore.preferences.core.booleanPreferencesKey("default_layout_grid")
+        private val KEY_SKIP_LIFESPAN = androidx.datastore.preferences.core.longPreferencesKey("skip_lifespan")
     }
 
     suspend fun saveSession(baseUrl: String, apiKey: String) {
@@ -76,6 +77,12 @@ class SessionDataStore(private val context: Context) {
 
     suspend fun saveDefaultLayoutGrid(isGrid: Boolean) {
         context.dataStore.edit { it[KEY_DEFAULT_LAYOUT_GRID] = isGrid }
+    }
+
+    fun getSkipLifespan(): Flow<Long> = context.dataStore.data.map { it[KEY_SKIP_LIFESPAN] ?: 0L }
+
+    suspend fun saveSkipLifespan(days: Long) {
+        context.dataStore.edit { it[KEY_SKIP_LIFESPAN] = days }
     }
 
     suspend fun clearSession() {

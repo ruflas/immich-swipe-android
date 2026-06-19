@@ -66,6 +66,12 @@ interface SwipeDecisionDao {
     suspend fun getDecisionCountForAlbum(albumId: String): Int
 
     /**
+     * Supprime les décisions 'SKIP' plus vieilles qu'un certain timestamp.
+     */
+    @Query("DELETE FROM swipe_decisions WHERE decision = 'SKIP' AND createdAt < :threshold")
+    suspend fun deleteExpiredSkips(threshold: Long)
+
+    /**
      * Récupère les statistiques de décisions pour tous les albums sous forme de Flow.
      * On compte le total et spécifiquement les demandes de suppression.
      */

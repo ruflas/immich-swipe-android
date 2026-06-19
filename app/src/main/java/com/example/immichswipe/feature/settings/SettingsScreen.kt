@@ -8,18 +8,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.immichswipe.core.AppTheme
 import com.example.immichswipe.core.IconPosition
 import com.example.immichswipe.core.PlaybackBehavior
@@ -99,6 +99,62 @@ fun SettingsScreen(
                             selected = uiState.isDefaultLayoutGrid,
                             onClick = { viewModel.setDefaultLayoutGrid(true) },
                             modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // SECTION TRI
+            SettingsSection(title = "Tri", icon = Icons.AutoMirrored.Filled.Sort) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Durée de vie des SKIP",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Au bout de ce délai, les photos 'passées' redeviennent 'non triées' pour vous permettre de les réévaluer.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    
+                    // État local pour le slider pour une réponse fluide
+                    var localSliderValue by remember(uiState.skipLifespanDays) { 
+                        mutableStateOf(mapDaysToSlider(uiState.skipLifespanDays)) 
+                    }
+                    // Si une alerte est annulée, on s'assure que le slider revient à la valeur réelle
+                    LaunchedEffect(uiState.showSkipLifespanWarning) {
+                        if (uiState.showSkipLifespanWarning == null) {
+                            localSliderValue = mapDaysToSlider(uiState.skipLifespanDays)
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val currentDays = mapSliderToDays(localSliderValue)
+                        Text(
+                            text = formatDays(currentDays),
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Slider(
+                            value = localSliderValue,
+                            onValueChange = { localSliderValue = it },
+                            onValueChangeFinished = {
+                                viewModel.requestSkipLifespanChange(mapSliderToDays(localSliderValue))
+                            },
+                            valueRange = 0f..500f, // Échelle personnalisée de 0 à 500
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+                        
+                        Text(
+                            text = if (currentDays == 0L) "Les SKIP ne reviennent jamais" else "Plus de précision sur les courtes durées",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline
                         )
                     }
                 }
@@ -204,6 +260,119 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(32.dp))
         }
+
+    // Dialogue d'avertissement SKIP
+    if (uiState.showSkipLifespanWarning != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissSkipLifespanWarning() },
+            title = { Text("Modifier la durée des SKIP") },
+            text = { 
+                Text("En changeant cette durée, certaines photos que vous aviez 'passées' pourraient réapparaître immédiatement dans votre pile de tri si elles dépassent le nouveau délai.") 
+            },
+            confirmButton = {
+                TextButton(onClick = { viewModel.confirmSkipLifespanChange() }) {
+                    Text("Confirmer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.dismissSkipLifespanWarning() }) {
+                    Text("Annuler")
+                }
+            }
+        )
+    }
+
+}
+
+//@Composable
+//fun CustomLifespanDialog(
+//    currentValue: Long,
+//    onDismiss: () -> Unit,
+//    onConfirm: (Long) -> Unit
+//) {
+//    var sliderValue by remember { mutableStateOf(if (currentValue > 0) currentValue.toFloat() else 90f) }
+//
+//    AlertDialog(
+//        onDismissRequest = onDismiss,
+//        title = { Text("Durée personnalisée") },
+//        text = {
+//            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//                Text(
+//                    text = formatDays(sliderValue.toLong()),
+//                    style = MaterialTheme.typography.headlineMedium,
+//                    color = MaterialTheme.colorScheme.primary
+//                )
+//                Spacer(Modifier.height(16.dp))
+//                Slider(
+//                    value = sliderValue,
+//                    onValueChange = { sliderValue = it },
+//                    valueRange = 1f..1825f, // 5 ans
+//                    steps = 0
+//                )
+//                Text(
+//                    "Faites glisser pour choisir entre 1 jour et 5 ans",
+//                    style = MaterialTheme.typography.bodySmall,
+//                    color = MaterialTheme.colorScheme.outline
+//                )
+//            }
+//        },
+//        confirmButton = {
+//            Button(onClick = { onConfirm(sliderValue.toLong()) }) {
+//                Text("Appliquer")
+//            }
+//        },
+//        dismissButton = {
+//            TextButton(onClick = onDismiss) {
+//                Text("Annuler")
+//            }
+//        }
+//    )
+//}
+
+fun formatDays(days: Long): String {
+    return when {
+        days == 0L -> "Jamais"
+        days < 7 -> "$days j"
+        days < 30 -> "${days / 7} sem."
+        days < 360 -> "${days / 30} mois"
+        else -> {
+            val years = (days + 5) / 365 // Arrondi léger pour éviter le saut 364j -> 11 mois
+            if (years <= 1L) "1 an" else "$years ans"
+        }
+    }
+}
+
+/**
+ * Mappe une valeur de slider (0-500) vers un nombre de jours (0-1825).
+ * Échelle non-linéaire pour plus de précision sur les petites durées.
+ */
+private fun mapSliderToDays(v: Float): Long {
+    if (v <= 0f) return 0L
+    return when {
+        v <= 100f -> lerpLong(1, 14, v / 100f)        // 0-20% -> 1-14 jours
+        v <= 200f -> lerpLong(15, 60, (v - 100f) / 100f)   // 20-40% -> 15-60 jours
+        v <= 300f -> lerpLong(61, 180, (v - 200f) / 100f)  // 40-60% -> 2-6 mois
+        v <= 400f -> lerpLong(181, 365, (v - 300f) / 100f) // 60-80% -> 6 mois-1 an
+        else -> lerpLong(366, 1825, (v - 400f) / 100f)     // 80-100% -> 1-5 ans
+    }
+}
+
+/**
+ * Mappe un nombre de jours vers une valeur de slider (0-500).
+ */
+private fun mapDaysToSlider(d: Long): Float {
+    if (d <= 0L) return 0f
+    return when {
+        d <= 14 -> (d - 1f) / 13f * 100f + 1f
+        d <= 60 -> (d - 15f) / 45f * 100f + 100f
+        d <= 180 -> (d - 61f) / 119f * 100f + 200f
+        d <= 365 -> (d - 181f) / 184f * 100f + 300f
+        else -> (d - 366f) / 1459f * 100f + 400f
+    }.coerceIn(0f, 500f)
+}
+
+private fun lerpLong(start: Long, end: Long, fraction: Float): Long {
+    return start + ((end - start) * fraction).toLong()
 }
 
 @Composable

@@ -78,6 +78,11 @@ class SessionRepository(context: Context) {
     val defaultLayoutGrid: Flow<Boolean> = dataStore.isDefaultLayoutGrid()
 
     /**
+     * Expose la durée de vie des SKIP (en jours). 0 = Jamais.
+     */
+    val skipLifespanDays: Flow<Long> = dataStore.getSkipLifespan()
+
+    /**
      * Sauvegarde une nouvelle session. 
      * Grâce au Flow ci-dessus, tous les observateurs seront notifiés automatiquement.
      */
@@ -125,6 +130,13 @@ class SessionRepository(context: Context) {
      */
     suspend fun saveDefaultLayoutGrid(isGrid: Boolean) {
         dataStore.saveDefaultLayoutGrid(isGrid)
+    }
+
+    /**
+     * Sauvegarde la durée de vie des SKIP.
+     */
+    suspend fun saveSkipLifespan(days: Long) {
+        dataStore.saveSkipLifespan(days)
     }
 
     /**

@@ -15,5 +15,7 @@ data class SettingsUiState(
     val isSwipeInverted: Boolean = false,
     val fullscreenButtonPosition: IconPosition = IconPosition.TOP_RIGHT,
     val immichButtonPosition: IconPosition = IconPosition.TOP_LEFT,
-    val isDefaultLayoutGrid: Boolean = false
+    val isDefaultLayoutGrid: Boolean = false,
+    val skipLifespanDays: Long = 0L,
+    val showSkipLifespanWarning: Long? = null // Contient la valeur cible si le dialogue est affiché
 )

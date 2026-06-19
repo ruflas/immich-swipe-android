@@ -28,7 +28,8 @@ data class SwipeUiState(
     val playbackBehavior: PlaybackBehavior = PlaybackBehavior.PAUSE_OTHERS,
     val isSwipeInverted: Boolean = false,
     val fullscreenButtonPosition: IconPosition = IconPosition.TOP_RIGHT,
-    val immichButtonPosition: IconPosition = IconPosition.TOP_LEFT
+    val immichButtonPosition: IconPosition = IconPosition.TOP_LEFT,
+    val skipLifespanDays: Long = 0L
 ) {
     val currentAsset: Asset? get() = assets.getOrNull(currentIndex)
     

@@ -60,6 +60,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.ui.graphics.Brush
 
@@ -121,7 +122,7 @@ fun HomeScreen(
                                 // Bouton pour basculer le layout
                                 IconButton(onClick = { viewModel.toggleLayoutMode() }) {
                                     Icon(
-                                        imageVector = if (uiState.isGridView) Icons.Default.ViewList else Icons.Default.GridView,
+                                        imageVector = if (uiState.isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                                         contentDescription = "Changer l'affichage"
                                     )
                                 }
@@ -290,7 +291,10 @@ fun HomeScreen(
                 }
                 HomeTab.SETTINGS -> {
                     val settingsViewModel: SettingsViewModel = viewModel(
-                        factory = SettingsViewModelFactory(viewModel.getSessionRepository())
+                        factory = SettingsViewModelFactory(
+                            viewModel.getSessionRepository(),
+                            swipeDecisionRepository
+                        )
                     )
                     SettingsScreen(
                         viewModel = settingsViewModel
@@ -430,7 +434,6 @@ fun ProfilePopup(
                                     com.example.immichswipe.core.ConnectionLevel.ONLINE -> "Serveur opérationnel"
                                     com.example.immichswipe.core.ConnectionLevel.ISSUES -> "Connexion perturbée"
                                     com.example.immichswipe.core.ConnectionLevel.OFFLINE -> "Serveur injoignable"
-                                    else -> "Statut inconnu"
                                 },
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,

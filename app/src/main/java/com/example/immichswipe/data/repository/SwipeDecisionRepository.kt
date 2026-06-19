@@ -68,4 +68,13 @@ class SwipeDecisionRepository(
     suspend fun clearAlbumDecisions(albumId: String) {
         swipeDecisionDao.deleteDecisionsForAlbum(albumId)
     }
+
+    /**
+     * Supprime les SKIP expirés de la base de données.
+     */
+    suspend fun cleanExpiredSkips(lifespanDays: Long) {
+        if (lifespanDays <= 0) return
+        val threshold = System.currentTimeMillis() - (lifespanDays * 24 * 60 * 60 * 1000L)
+        swipeDecisionDao.deleteExpiredSkips(threshold)
+    }
 }
