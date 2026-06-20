@@ -1,17 +1,29 @@
 package com.minos2020.immichswipe.feature.home
 
 import android.content.Intent
+import android.net.Uri
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -20,23 +32,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.activity.compose.BackHandler
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.minos2020.immichswipe.R
+import com.minos2020.immichswipe.core.AppTheme
 import com.minos2020.immichswipe.core.SessionManager
 import com.minos2020.immichswipe.data.repository.AssetRepository
 import com.minos2020.immichswipe.data.repository.SwipeDecisionRepository
@@ -45,17 +60,6 @@ import com.minos2020.immichswipe.feature.settings.SettingsScreen
 import com.minos2020.immichswipe.feature.settings.SettingsViewModel
 import com.minos2020.immichswipe.feature.settings.SettingsViewModelFactory
 import com.minos2020.immichswipe.feature.swipe.SwipeScreen
-import androidx.lifecycle.viewmodel.compose.viewModel
-
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.foundation.lazy.grid.items as gridItems
-import androidx.compose.ui.graphics.Brush
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,7 +79,6 @@ fun HomeScreen(
     }
 
     // Gestion du retour physique/gestuel du téléphone
-    // Activé si on n'est pas sur l'onglet HOME (donc en SWIPE ou SETTINGS)
     BackHandler(enabled = uiState.currentTab != HomeTab.HOME) {
         viewModel.goBack()
     }
@@ -86,10 +89,10 @@ fun HomeScreen(
             if (isSettings) {
                 // Barre de titre pour les paramètres
                 TopAppBar(
-                    title = { Text("Paramètres") },
+                    title = { Text(stringResource(R.string.settings_title)) },
                     navigationIcon = {
                         IconButton(onClick = { viewModel.goBack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.nav_back))
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -103,7 +106,7 @@ fun HomeScreen(
                         title = {
                             Image(
                                 painter = painterResource(id = R.drawable.logo_immichswipe_couleurs),
-                                contentDescription = "Logo Immich Swipe",
+                                contentDescription = stringResource(R.string.app_name),
                                 modifier = Modifier
                                     .height(35.dp)
                                     .padding(vertical = 4.dp),
@@ -116,7 +119,7 @@ fun HomeScreen(
                                 IconButton(onClick = { viewModel.toggleLayoutMode() }) {
                                     Icon(
                                         imageVector = if (uiState.isGridView) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
-                                        contentDescription = "Changer l'affichage"
+                                        contentDescription = stringResource(R.string.settings_layout_label)
                                     )
                                 }
                             }
@@ -141,7 +144,7 @@ fun HomeScreen(
                                             .addHeader("x-api-key", SessionManager.getApiKey() ?: "")
                                             .crossfade(true)
                                             .build(),
-                                        contentDescription = "Profile Picture",
+                                        contentDescription = stringResource(R.string.settings_section_account),
                                         placeholder = rememberVectorPainter(Icons.Default.AccountCircle),
                                         error = rememberVectorPainter(Icons.Default.AccountCircle),
                                         modifier = profileModifier,
@@ -150,7 +153,7 @@ fun HomeScreen(
                                 } else {
                                     Icon(
                                         imageVector = Icons.Default.AccountCircle,
-                                        contentDescription = "Default Profile",
+                                        contentDescription = stringResource(R.string.settings_section_account),
                                         modifier = profileModifier,
                                         tint = MaterialTheme.colorScheme.outline
                                     )
@@ -180,12 +183,12 @@ fun HomeScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp, vertical = 8.dp),
-                            placeholder = { Text("Rechercher un album...", fontSize = 14.sp) },
+                            placeholder = { Text(stringResource(R.string.home_search_placeholder), fontSize = 14.sp) },
                             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp)) },
                             trailingIcon = {
                                 if (uiState.searchQuery.isNotEmpty()) {
                                     IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
-                                        Icon(Icons.Default.Clear, contentDescription = "Effacer", modifier = Modifier.size(20.dp))
+                                        Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.common_cancel), modifier = Modifier.size(20.dp))
                                     }
                                 }
                             },
@@ -210,13 +213,13 @@ fun HomeScreen(
                         selected = uiState.currentTab == HomeTab.HOME,
                         onClick = { viewModel.onTabSelected(HomeTab.HOME) },
                         icon = { Icon(Icons.Default.Home, contentDescription = null) },
-                        label = { Text("Home") }
+                        label = { Text(stringResource(R.string.nav_home)) }
                     )
                     NavigationBarItem(
                         selected = uiState.currentTab == HomeTab.SWIPE,
                         onClick = { viewModel.onTabSelected(HomeTab.SWIPE) },
                         icon = { Icon(Icons.Default.Swipe, contentDescription = null) },
-                        label = { Text("Swipe") }
+                        label = { Text(stringResource(R.string.nav_swipe)) }
                     )
                 }
             }
@@ -239,7 +242,7 @@ fun HomeScreen(
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(Icons.Default.SearchOff, null, modifier = Modifier.size(48.dp), tint = MaterialTheme.colorScheme.outline)
                                 Spacer(Modifier.height(8.dp))
-                                Text("Aucun album ne correspond à votre recherche", color = MaterialTheme.colorScheme.outline)
+                                Text(stringResource(R.string.home_no_results), color = MaterialTheme.colorScheme.outline)
                             }
                         }
                     } else {
@@ -346,7 +349,7 @@ fun ProfilePopup(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Fermer")
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                     }
                     Image(
                         painter = painterResource(id = R.drawable.logo_immichswipe_couleurs),
@@ -354,7 +357,7 @@ fun ProfilePopup(
                         modifier = Modifier.height(24.dp),
                         contentScale = ContentScale.Fit
                     )
-                    Spacer(Modifier.width(48.dp)) // Équilibre le bouton X
+                    Spacer(Modifier.width(48.dp))
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -373,7 +376,7 @@ fun ProfilePopup(
                             .addHeader("x-api-key", apiKey)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "Profile Picture",
+                        contentDescription = stringResource(R.string.settings_section_account),
                         placeholder = rememberVectorPainter(Icons.Default.AccountCircle),
                         error = rememberVectorPainter(Icons.Default.AccountCircle),
                         modifier = profileModifier,
@@ -382,7 +385,7 @@ fun ProfilePopup(
                 } else {
                     Icon(
                         imageVector = Icons.Default.AccountCircle,
-                        contentDescription = "Default Profile",
+                        contentDescription = stringResource(R.string.settings_section_account),
                         modifier = profileModifier,
                         tint = MaterialTheme.colorScheme.outline
                     )
@@ -390,9 +393,8 @@ fun ProfilePopup(
 
                 Spacer(Modifier.height(16.dp))
 
-                // Infos utilisateur
                 Text(
-                    text = user?.name ?: "Utilisateur",
+                    text = user?.name ?: stringResource(R.string.home_user_fallback),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -424,9 +426,9 @@ fun ProfilePopup(
                         Column {
                             Text(
                                 text = when(connectionStatus.level) {
-                                    com.minos2020.immichswipe.core.ConnectionLevel.ONLINE -> "Serveur opérationnel"
-                                    com.minos2020.immichswipe.core.ConnectionLevel.ISSUES -> "Connexion perturbée"
-                                    com.minos2020.immichswipe.core.ConnectionLevel.OFFLINE -> "Serveur injoignable"
+                                    com.minos2020.immichswipe.core.ConnectionLevel.ONLINE -> stringResource(R.string.diag_online)
+                                    com.minos2020.immichswipe.core.ConnectionLevel.ISSUES -> stringResource(R.string.diag_issues)
+                                    com.minos2020.immichswipe.core.ConnectionLevel.OFFLINE -> stringResource(R.string.diag_offline)
                                 },
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
@@ -461,7 +463,7 @@ fun ProfilePopup(
                     Column {
                         PopupActionItem(
                             icon = Icons.Default.Settings,
-                            text = "Paramètres",
+                            text = stringResource(R.string.settings_title),
                             onClick = onSettingsClick
                         )
                         HorizontalDivider(
@@ -471,7 +473,7 @@ fun ProfilePopup(
                         )
                         PopupActionItem(
                             icon = Icons.AutoMirrored.Filled.Logout,
-                            text = "Déconnexion",
+                            text = stringResource(R.string.profile_logout_button),
                             onClick = onLogout,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -500,7 +502,7 @@ fun ProfilePopup(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Code source",
+                        text = stringResource(R.string.profile_source_code),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
@@ -557,8 +559,13 @@ fun AlbumList(
                 val albumsInStatus = groupedAlbums[status]
                 if (!albumsInStatus.isNullOrEmpty()) {
                     item(key = "header_${status.name}") {
+                        val statusLabel = when(status) {
+                            AlbumStatus.IN_PROGRESS -> stringResource(R.string.home_status_in_progress)
+                            AlbumStatus.NOT_STARTED -> stringResource(R.string.home_status_not_started)
+                            AlbumStatus.COMPLETED -> stringResource(R.string.home_status_completed)
+                        }
                         Text(
-                            text = status.label,
+                            text = statusLabel,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary,
@@ -607,8 +614,13 @@ fun AlbumGrid(
                 val albumsInStatus = groupedAlbums[status]
                 if (!albumsInStatus.isNullOrEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
+                        val statusLabel = when(status) {
+                            AlbumStatus.IN_PROGRESS -> stringResource(R.string.home_status_in_progress)
+                            AlbumStatus.NOT_STARTED -> stringResource(R.string.home_status_not_started)
+                            AlbumStatus.COMPLETED -> stringResource(R.string.home_status_completed)
+                        }
                         Text(
-                            text = status.label,
+                            text = statusLabel,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary,
@@ -715,7 +727,7 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
                     shadowElevation = 4.dp
                 ) {
                     Text(
-                        text = "NEW",
+                        text = stringResource(R.string.home_new_badge),
                         color = MaterialTheme.colorScheme.onTertiary,
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
@@ -732,7 +744,7 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
             ) {
                 if (hasUnsyncedChanges) {
                     Text(
-                        text = "NON SYNCHRONISÉ",
+                        text = stringResource(R.string.home_unsynced_badge),
                         color = Color(0xFFD32F2F),
                         fontSize = 9.sp,
                         fontWeight = FontWeight.Black,
@@ -747,7 +759,7 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
                     maxLines = 1
                 )
                 Text(
-                    text = "$treatedCount / ${album.assetCount}",
+                    text = stringResource(R.string.home_sorted_count, treatedCount, album.assetCount),
                     color = Color.White.copy(alpha = 0.8f),
                     fontSize = 11.sp
                 )
@@ -856,12 +868,12 @@ fun AlbumItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick:
                         Text(text = album.albumName, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
                         if (isCompleted) {
                             Spacer(Modifier.width(8.dp))
-                            Text("Terminé", fontSize = 10.sp, color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.home_album_completed), fontSize = 10.sp, color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
                         }
                     }
                     if (hasUnsyncedChanges) {
                         Text(
-                            text = "Contient $pendingDeleteCount suppressions non synchronisées",
+                            text = stringResource(R.string.home_unsynced_changes, pendingDeleteCount),
                             fontSize = 11.sp,
                             color = Color(0xFFD32F2F),
                             fontWeight = FontWeight.Bold
@@ -871,7 +883,7 @@ fun AlbumItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick:
                         Text(text = album.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.outline, maxLines = 2)
                     }
                     Text(
-                        text = "$treatedCount / ${album.assetCount} triés",
+                        text = stringResource(R.string.home_sorted_count, treatedCount, album.assetCount),
                         fontSize = 12.sp,
                         color = if (isCompleted) Color(0xFF388E3C) else MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium
@@ -902,10 +914,10 @@ fun SwipePlaceholder(selectedAlbum: Album?) {
             Icon(Icons.Default.Swipe, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(16.dp))
             if (selectedAlbum != null) {
-                Text("Session de tri : ${selectedAlbum.albumName}", fontWeight = FontWeight.Bold)
-                Text("${selectedAlbum.assetCount} photos à découvrir", fontSize = 14.sp)
+                Text(stringResource(R.string.home_session_title, selectedAlbum.albumName), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.home_photos_to_discover, selectedAlbum.assetCount), fontSize = 14.sp)
             } else {
-                Text("Sélectionnez un album pour commencer !")
+                Text(stringResource(R.string.home_select_album))
             }
         }
     }
@@ -915,10 +927,10 @@ fun SwipePlaceholder(selectedAlbum: Album?) {
 fun ErrorView(error: String, onRetry: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Oups ! Une erreur est survenue", color = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.home_error_title), color = MaterialTheme.colorScheme.error)
             Text(error, fontSize = 12.sp)
             Spacer(Modifier.height(16.dp))
-            Button(onClick = onRetry) { Text("Réessayer") }
+            Button(onClick = onRetry) { Text(stringResource(R.string.home_retry_button)) }
         }
     }
 }

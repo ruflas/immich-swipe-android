@@ -7,7 +7,10 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.view.LayoutInflater
 import androidx.annotation.OptIn
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,6 +18,10 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -26,20 +33,22 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.core.net.toUri
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -47,11 +56,16 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.zIndex
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -59,28 +73,19 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.minos2020.immichswipe.core.SessionManager
-import com.minos2020.immichswipe.core.PlaybackBehavior
+import com.minos2020.immichswipe.R
 import com.minos2020.immichswipe.core.IconPosition
+import com.minos2020.immichswipe.core.PlaybackBehavior
+import com.minos2020.immichswipe.core.SessionManager
 import com.minos2020.immichswipe.data.repository.AssetRepository
 import com.minos2020.immichswipe.data.repository.SessionRepository
 import com.minos2020.immichswipe.data.repository.SwipeDecisionRepository
 import com.minos2020.immichswipe.domain.model.Album
 import com.minos2020.immichswipe.domain.model.Asset
-import com.minos2020.immichswipe.R
-import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 import kotlin.math.roundToInt
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 
 private val MaterialGreen = Color(0xFF2E7D32) // Un vert plus profond (Green 800)
 private val MaterialRed = Color(0xFFC62828)   // Un rouge plus marqué (Red 800)
@@ -158,7 +163,7 @@ fun SwipeScreen(
                     Button(onClick = { viewModel.retryLoading() }) {
                         Icon(Icons.Default.Refresh, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Réessayer")
+                        Text(stringResource(R.string.common_retry))
                     }
                 }
             } else if (uiState.currentIndex < uiState.assets.size) {
@@ -197,7 +202,7 @@ fun SwipeScreen(
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(Modifier.height(16.dp))
-                    Text(text = "Félicitations ! Album trié.", fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.swipe_congratulations), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -214,18 +219,18 @@ fun SwipeScreen(
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Supprimer")
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.swipe_delete))
             }
 
             IconButton(
                 onClick = { viewModel.undo() },
                 enabled = uiState.currentIndex > 0 || uiState.history.isNotEmpty()
             ) {
-                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Annuler")
+                Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = stringResource(R.string.nav_back))
             }
 
             IconButton(onClick = { viewModel.onSwipe(SwipeDecision.SKIP) }) {
-                Icon(Icons.AutoMirrored.Filled.Forward, contentDescription = "Passer")
+                Icon(Icons.AutoMirrored.Filled.Forward, contentDescription = stringResource(R.string.swipe_skip))
             }
 
             FloatingActionButton(
@@ -234,7 +239,7 @@ fun SwipeScreen(
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
-                Icon(Icons.Default.Check, contentDescription = "Garder")
+                Icon(Icons.Default.Check, contentDescription = stringResource(R.string.swipe_keep))
             }
         }
     }
@@ -338,14 +343,14 @@ fun SuccessAnimationOverlay() {
                 Spacer(Modifier.height(24.dp))
                 
                 Text(
-                    text = "Synchronisé !",
+                    text = stringResource(R.string.swipe_sync_success),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 
                 Text(
-                    text = "Vos changements sont sur Immich",
+                    text = stringResource(R.string.swipe_sync_success_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -422,7 +427,7 @@ fun SwipeHeader(
                     Spacer(Modifier.width(8.dp))
                     Icon(
                         imageVector = Icons.Default.Assessment,
-                        contentDescription = "Résumé",
+                        contentDescription = stringResource(R.string.swipe_summary_title),
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
@@ -438,10 +443,10 @@ fun SwipeHeader(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            StatBadge(label = "Gardés", count = uiState.keptCount, color = MaterialGreen)
-            StatBadge(label = "Suppr.", count = uiState.deletedCount, color = MaterialRed)
-            StatBadge(label = "Passés", count = uiState.skippedCount, color = Color.Gray)
-            StatBadge(label = "Restant", count = uiState.remainingCount, color = MaterialTheme.colorScheme.outline)
+            StatBadge(label = stringResource(R.string.swipe_keep), count = uiState.keptCount, color = MaterialGreen)
+            StatBadge(label = stringResource(R.string.swipe_delete), count = uiState.deletedCount, color = MaterialRed)
+            StatBadge(label = stringResource(R.string.swipe_skip), count = uiState.skippedCount, color = Color.Gray)
+            StatBadge(label = stringResource(R.string.swipe_remaining), count = uiState.remainingCount, color = MaterialTheme.colorScheme.outline)
         }
     }
 }
@@ -612,7 +617,7 @@ fun SwipeCard(
                         .setUsage(C.USAGE_MEDIA)
                         .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
                         .build()
-                    
+
                     // On active la gestion automatique du focus (coupe les autres sons)
                     setAudioAttributes(audioAttributes, true)
                 }
@@ -637,30 +642,20 @@ fun SwipeCard(
                 isVideoReady = state == Player.STATE_READY
             }
         }
-        
+
         // Initialiser l'état immédiatement si le player est déjà prêt
         if (exoPlayer?.playbackState == Player.STATE_READY) {
             isVideoReady = true
         }
-
         exoPlayer?.addListener(listener)
-
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
-                Lifecycle.Event.ON_PAUSE -> {
-                    exoPlayer?.playWhenReady = false
-                }
-                Lifecycle.Event.ON_RESUME -> {
-                    // On ne relance que si on n'est pas en plein écran (pour éviter les conflits)
-                    if (!isFullscreenOpen) {
-                        exoPlayer?.playWhenReady = true
-                    }
-                }
+                Lifecycle.Event.ON_PAUSE -> exoPlayer?.playWhenReady = false
+                Lifecycle.Event.ON_RESUME -> if (!isFullscreenOpen) exoPlayer?.playWhenReady = true
                 else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             exoPlayer?.removeListener(listener)
@@ -697,7 +692,6 @@ fun SwipeCard(
                             scope.launch {
                                 val currentX = offsetX.value
                                 val currentY = offsetY.value
-
                                 if (currentX > 250) {
                                     offsetX.animateTo(1500f, tween(150))
                                     onSwipe(if (isSwipeInverted) SwipeDecision.DELETE else SwipeDecision.KEEP)
@@ -806,7 +800,6 @@ fun SwipeCard(
                     // Zone pour les boutons d'action (Plein écran et Immich)
                     // Si les deux sont au même endroit, on les met dans une Column
                     val samePosition = fullscreenButtonPosition == immichButtonPosition
-                    
                     if (samePosition) {
                         val stackAlignment = when (fullscreenButtonPosition) {
                             IconPosition.TOP_LEFT -> Alignment.TopStart
@@ -814,7 +807,6 @@ fun SwipeCard(
                             IconPosition.BOTTOM_LEFT -> Alignment.BottomStart
                             IconPosition.BOTTOM_RIGHT -> Alignment.BottomEnd
                         }
-                        
                         Column(
                             modifier = Modifier
                                 .align(stackAlignment)
@@ -829,9 +821,8 @@ fun SwipeCard(
                                 onClick = { isFullscreenOpen = true },
                                 modifier = Modifier.background(Color.Black.copy(alpha = 0.3f), CircleShape)
                             ) {
-                                Icon(Icons.Default.Fullscreen, null, tint = Color.White)
+                                Icon(Icons.Default.Fullscreen, stringResource(R.string.settings_fullscreen_pos_label), tint = Color.White)
                             }
-                            
                             IconButton(
                                 onClick = {
                                     val intent = Intent(Intent.ACTION_VIEW, "$baseUrl/photos/${asset.id}".toUri())
@@ -841,7 +832,7 @@ fun SwipeCard(
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                    contentDescription = "Ouvrir dans Immich",
+                                    contentDescription = stringResource(R.string.settings_immich_pos_label),
                                     tint = Color.White
                                 )
                             }
@@ -854,7 +845,6 @@ fun SwipeCard(
                             IconPosition.BOTTOM_LEFT -> Alignment.BottomStart
                             IconPosition.BOTTOM_RIGHT -> Alignment.BottomEnd
                         }
-                        
                         IconButton(
                             onClick = { isFullscreenOpen = true },
                             modifier = Modifier
@@ -862,16 +852,14 @@ fun SwipeCard(
                                 .padding(8.dp)
                                 .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                         ) {
-                            Icon(Icons.Default.Fullscreen, null, tint = Color.White)
+                            Icon(Icons.Default.Fullscreen, stringResource(R.string.settings_fullscreen_pos_label), tint = Color.White)
                         }
-
                         val immichButtonAlignment = when (immichButtonPosition) {
                             IconPosition.TOP_LEFT -> Alignment.TopStart
                             IconPosition.TOP_RIGHT -> Alignment.TopEnd
                             IconPosition.BOTTOM_LEFT -> Alignment.BottomStart
                             IconPosition.BOTTOM_RIGHT -> Alignment.BottomEnd
                         }
-
                         IconButton(
                             onClick = {
                                 val intent = Intent(Intent.ACTION_VIEW, "$baseUrl/photos/${asset.id}".toUri())
@@ -884,14 +872,13 @@ fun SwipeCard(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                contentDescription = "Ouvrir dans Immich",
+                                contentDescription = stringResource(R.string.settings_immich_pos_label),
                                 tint = Color.White
                             )
                         }
                     }
                 }
 
-                // Dégradé pour le texte des métadonnées
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
@@ -916,7 +903,6 @@ fun SwipeCard(
                 if (!isNext) {
                     val keepAlpha = (offsetX.value / 200f).coerceIn(0f, 1f)
                     val deleteAlpha = (-offsetX.value / 200f).coerceIn(0f, 1f)
-
                     if (isSwipeInverted) {
                         // Inversion des badges
                         if (keepAlpha > 0f) {
@@ -1058,7 +1044,7 @@ fun FullscreenViewer(
                     .padding(vertical = 50.dp, horizontal = 20.dp)
                     .background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
-                Icon(Icons.Default.Close, null, tint = Color.White)
+                Icon(Icons.Default.Close, stringResource(R.string.common_close), tint = Color.White)
             }
         }
     }
@@ -1099,21 +1085,21 @@ fun MetadataPanel(asset: Asset, onClose: () -> Unit) {
             Box(modifier = Modifier.size(40.dp, 4.dp).clip(CircleShape).background(MaterialTheme.colorScheme.outlineVariant).align(Alignment.CenterHorizontally))
             Spacer(Modifier.height(16.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Détails de l'image", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                IconButton(onClick = onClose) { Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp)) }
+                Text(text = stringResource(R.string.swipe_metadata_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                IconButton(onClick = onClose) { Icon(Icons.Default.Close, stringResource(R.string.common_close), modifier = Modifier.size(20.dp)) }
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), thickness = 0.5.dp)
-            MetadataRow(Icons.Default.Description, "Fichier", asset.originalFileName ?: "Inconnu")
-            MetadataRow(Icons.Default.CalendarToday, "Date", asset.fileCreatedAt.substringBefore("T"))
+            MetadataRow(Icons.Default.Description, stringResource(R.string.swipe_metadata_file), asset.originalFileName ?: stringResource(R.string.diag_unknown))
+            MetadataRow(Icons.Default.CalendarToday, stringResource(R.string.swipe_metadata_date), asset.fileCreatedAt.substringBefore("T"))
             val formatLabel = if (asset.fileExtension != null) "${asset.type} (.${asset.fileExtension.lowercase()})" else asset.type
-            MetadataRow(Icons.Default.Info, "Format", formatLabel)
+            MetadataRow(Icons.Default.Info, stringResource(R.string.swipe_metadata_format), formatLabel)
             asset.exifInfo?.let { exif ->
                 val sizeMb = exif.fileSizeInBytes?.let { String.format(Locale.getDefault(), "%.2f Mo", it / 1024.0 / 1024.0) } ?: "N/A"
-                MetadataRow(Icons.Default.SdStorage, "Taille", sizeMb)
-                MetadataRow(Icons.Default.AspectRatio, "Résolution", "${exif.imageWidth ?: "?"} x ${exif.imageHeight ?: "?"}")
+                MetadataRow(Icons.Default.SdStorage, stringResource(R.string.swipe_metadata_size), sizeMb)
+                MetadataRow(Icons.Default.AspectRatio, stringResource(R.string.swipe_metadata_resolution), "${exif.imageWidth ?: "?"} x ${exif.imageHeight ?: "?"}")
             } ?: run {
-                MetadataRow(Icons.Default.SdStorage, "Taille", "Chargement...")
-                MetadataRow(Icons.Default.AspectRatio, "Résolution", "Chargement...")
+                MetadataRow(Icons.Default.SdStorage, stringResource(R.string.swipe_metadata_size), stringResource(R.string.swipe_loading))
+                MetadataRow(Icons.Default.AspectRatio, stringResource(R.string.swipe_metadata_resolution), stringResource(R.string.swipe_loading))
             }
         }
     }
@@ -1155,18 +1141,14 @@ fun SummaryDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.fillMaxWidth(0.95f),
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Résumé du tri",
+                    text = stringResource(R.string.swipe_summary_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold
                 )
                 IconButton(onClick = onDismiss, enabled = !uiState.isSyncing) {
-                    Icon(Icons.Default.Close, contentDescription = null)
+                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.common_close))
                 }
             }
         },
@@ -1185,14 +1167,14 @@ fun SummaryDialog(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         StatSummaryBox(
-                            label = "Gardés",
+                            label = stringResource(R.string.swipe_keep),
                             count = uiState.keptCount,
                             size = uiState.keptSize,
                             color = Color(0xFF388E3C),
                             modifier = Modifier.weight(1f)
                         )
                         StatSummaryBox(
-                            label = "Supprimés",
+                            label = stringResource(R.string.swipe_delete),
                             count = uiState.deletedCount,
                             size = uiState.deletedSize,
                             color = Color(0xFFD32F2F),
@@ -1201,14 +1183,14 @@ fun SummaryDialog(
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         StatSummaryBox(
-                            label = "Passés",
+                            label = stringResource(R.string.swipe_skip),
                             count = uiState.skippedCount,
                             size = uiState.skippedSize,
                             color = Color(0xFF757575),
                             modifier = Modifier.weight(1f)
                         )
                         StatSummaryBox(
-                            label = "Restants",
+                            label = stringResource(R.string.swipe_remaining),
                             count = uiState.remainingCount,
                             size = uiState.remainingSize,
                             color = MaterialTheme.colorScheme.outline,
@@ -1221,7 +1203,7 @@ fun SummaryDialog(
 
                 // Liste des miniatures à supprimer
                 Text(
-                    text = "Vérifiez avant suppression",
+                    text = stringResource(R.string.swipe_check_before_delete),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -1260,7 +1242,7 @@ fun SummaryDialog(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
-                                "Aucune photo à supprimer.",
+                                stringResource(R.string.swipe_no_deletions),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.outline
                             )
@@ -1287,7 +1269,7 @@ fun SummaryDialog(
             ) {
                 val totalSize = formatSize(uiState.deletedSize)
                 Text(
-                    text = if (uiState.isSyncing) "Synchronisation..." else "Libérer $totalSize (${uiState.deletedCount} items)",
+                    text = if (uiState.isSyncing) stringResource(R.string.swipe_syncing) else stringResource(R.string.swipe_liberate_button, totalSize, uiState.deletedCount),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1369,7 +1351,7 @@ fun DeletedAssetThumbnail(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.common_close),
                 tint = Color.White,
                 modifier = Modifier.size(16.dp).padding(2.dp)
             )

@@ -26,6 +26,12 @@
     <string name="home_album_completed">Terminé</string>
     <string name="home_unsynced_changes">Contient %1$d suppressions non synchronisées</string>
     <string name="home_sorted_count">%1$d / %2$d triés</string>
+    <string name="home_select_album">Sélectionnez un album pour commencer !</string>
+    <string name="home_session_title">Session de tri : %1$s</string>
+    <string name="home_photos_to_discover">%1$d photos à découvrir</string>
+    <string name="home_new_badge">NEUF</string>
+    <string name="home_unsynced_badge">NON SYNCHRONISÉ</string>
+    <string name="home_user_fallback">Utilisateur</string>
 
     <!-- Popup Profil & Diagnostic -->
     <string name="profile_connected_label">Connecté au serveur Immich</string>
@@ -64,7 +70,44 @@
     <string name="settings_video_pause">Couper tous les autres sons</string>
     <string name="settings_video_ignore">Jouer par dessus les autres sons</string>
     <string name="settings_section_account">Compte</string>
+    <string name="settings_pos_top_left">Haut-Gauche</string>
+    <string name="settings_pos_top_right">Haut-Droite</string>
+    <string name="settings_pos_bottom_left">Bas-Gauche</string>
+    <string name="settings_pos_bottom_right">Bas-Droite</string>
+
+    <!-- Écran Swipe -->
+    <string name="swipe_keep">Garder</string>
+    <string name="swipe_delete">Supprimer</string>
+    <string name="swipe_skip">Passer</string>
+    <string name="swipe_remaining">Restant</string>
+    <string name="swipe_summary_title">Résumé du tri</string>
+    <string name="swipe_sync_success">Synchronisé !</string>
+    <string name="swipe_sync_success_desc">Vos changements sont sur Immich</string>
+    <string name="swipe_liberate_button">Libérer %1$s (%2$d items)</string>
+    <string name="swipe_no_deletions">Aucune photo à supprimer.</string>
+    <string name="swipe_metadata_title">Détails de l\'image</string>
+    <string name="swipe_metadata_file">Fichier</string>
+    <string name="swipe_metadata_date">Date</string>
+    <string name="swipe_metadata_format">Format</string>
+    <string name="swipe_metadata_size">Taille</string>
+    <string name="swipe_metadata_resolution">Résolution</string>
+    <string name="swipe_loading">Chargement…</string>
+    <string name="swipe_syncing">Synchronisation…</string>
+    <string name="swipe_congratulations">Félicitations ! Album trié.</string>
+    <string name="swipe_check_before_delete">Vérifiez avant suppression</string>
+
+    <!-- Durées -->
+    <string name="duration_never">Jamais</string>
+    <string name="duration_day">%1$d j</string>
+    <string name="duration_week">%1$d sem.</string>
+    <string name="duration_month">%1$d mois</string>
+    <string name="duration_year_one">1 an</string>
+    <string name="duration_years">%1$d ans</string>
+
+    <!-- Commun -->
     <string name="common_confirm">Confirmer</string>
     <string name="common_cancel">Annuler</string>
     <string name="common_apply">Appliquer</string>
+    <string name="common_retry">Réessayer</string>
+    <string name="common_close">Fermer</string>
 </resources>

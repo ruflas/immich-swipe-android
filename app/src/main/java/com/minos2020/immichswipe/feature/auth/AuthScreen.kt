@@ -20,11 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.minos2020.immichswipe.R
+import androidx.compose.ui.res.stringResource
+
 
 /**
  * Écran d'authentification.
- * Cet écran est purement réactif : il envoie les saisies au ViewModel 
- * et affiche l'état actuel (chargement, erreur, succès).
  */
 @Composable
 fun AuthScreen(
@@ -53,26 +53,20 @@ fun AuthScreen(
                 Spacer(Modifier.height(15.dp))
                 Image(
                     painter = painterResource(id = R.drawable.logo_immichswipe_couleurs),
-                    contentDescription = "Logo Immich Swipe",
+                    contentDescription = stringResource(R.string.app_name),
                     modifier = Modifier
                         .height(50.dp)
                         .padding(vertical = 4.dp),
                     contentScale = ContentScale.Fit
                 )
 
-//                Text(
-//                    text = "Connectez votre serveur Immich",
-//                    fontSize = 14.sp,
-//                    color = MaterialTheme.colorScheme.outline
-//                )
-
                 Spacer(Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = state.baseUrl,
                     onValueChange = viewModel::onBaseUrlChange,
-                    label = { Text("URL du serveur") },
-                    placeholder = { Text("https://votre-instance.com") },
+                    label = { Text(stringResource(R.string.login_url_label)) },
+                    placeholder = { Text(stringResource(R.string.login_url_placeholder)) },
                     leadingIcon = { Icon(Icons.Default.Storage, contentDescription = null) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
@@ -82,7 +76,7 @@ fun AuthScreen(
                 OutlinedTextField(
                     value = state.apiKey,
                     onValueChange = viewModel::onApiKeyChange,
-                    label = { Text("Clé API") },
+                    label = { Text(stringResource(R.string.login_api_key_label)) },
                     leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null) },
                     visualTransformation = PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth(),
@@ -107,7 +101,7 @@ fun AuthScreen(
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text("Se connecter", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.login_button), fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -127,7 +121,7 @@ fun AuthScreen(
 
                 if (state.success) {
                     Text(
-                        text = "Connexion réussie ✔",
+                        text = stringResource(R.string.login_success),
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Medium
                     )

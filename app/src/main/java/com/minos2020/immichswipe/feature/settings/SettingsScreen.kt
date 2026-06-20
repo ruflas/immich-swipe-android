@@ -16,10 +16,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.minos2020.immichswipe.R
 import com.minos2020.immichswipe.core.AppTheme
 import com.minos2020.immichswipe.core.IconPosition
 import com.minos2020.immichswipe.core.PlaybackBehavior
@@ -39,10 +41,10 @@ fun SettingsScreen(
             .verticalScroll(rememberScrollState())
     ) {
             // SECTION APPARENCE
-            SettingsSection(title = "Apparence", icon = Icons.Default.Palette) {
+            SettingsSection(title = stringResource(R.string.settings_section_appearance), icon = Icons.Default.Palette) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Thème de l'application",
+                        text = stringResource(R.string.settings_theme_label),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -52,21 +54,21 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         ThemeButton(
-                            text = "Système",
+                            text = stringResource(R.string.settings_theme_system),
                             icon = Icons.Default.SettingsSuggest,
                             selected = uiState.themeMode == AppTheme.SYSTEM,
                             onClick = { viewModel.setThemeMode(AppTheme.SYSTEM) },
                             modifier = Modifier.weight(1f)
                         )
                         ThemeButton(
-                            text = "Clair",
+                            text = stringResource(R.string.settings_theme_light),
                             icon = Icons.Default.LightMode,
                             selected = uiState.themeMode == AppTheme.LIGHT,
                             onClick = { viewModel.setThemeMode(AppTheme.LIGHT) },
                             modifier = Modifier.weight(1f)
                         )
                         ThemeButton(
-                            text = "Sombre",
+                            text = stringResource(R.string.settings_theme_dark),
                             icon = Icons.Default.DarkMode,
                             selected = uiState.themeMode == AppTheme.DARK,
                             onClick = { viewModel.setThemeMode(AppTheme.DARK) },
@@ -77,7 +79,7 @@ fun SettingsScreen(
                     Spacer(Modifier.height(16.dp))
 
                     Text(
-                        text = "Affichage par défaut",
+                        text = stringResource(R.string.settings_layout_label),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -87,14 +89,14 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         ThemeButton(
-                            text = "Liste",
+                            text = stringResource(R.string.settings_layout_list),
                             icon = Icons.AutoMirrored.Filled.ViewList,
                             selected = !uiState.isDefaultLayoutGrid,
                             onClick = { viewModel.setDefaultLayoutGrid(false) },
                             modifier = Modifier.weight(1f)
                         )
                         ThemeButton(
-                            text = "Grille",
+                            text = stringResource(R.string.settings_layout_grid),
                             icon = Icons.Default.GridView,
                             selected = uiState.isDefaultLayoutGrid,
                             onClick = { viewModel.setDefaultLayoutGrid(true) },
@@ -107,15 +109,15 @@ fun SettingsScreen(
             Spacer(Modifier.height(16.dp))
 
             // SECTION TRI
-            SettingsSection(title = "Tri", icon = Icons.AutoMirrored.Filled.Sort) {
+            SettingsSection(title = stringResource(R.string.settings_section_tri), icon = Icons.AutoMirrored.Filled.Sort) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Durée de vie des SKIP",
+                        text = stringResource(R.string.settings_skip_lifespan_label),
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "Au bout de ce délai, les photos 'passées' redeviennent 'non triées' pour vous permettre de les réévaluer.",
+                        text = stringResource(R.string.settings_skip_lifespan_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -152,7 +154,7 @@ fun SettingsScreen(
                         )
                         
                         Text(
-                            text = if (currentDays == 0L) "Les SKIP ne reviennent jamais" else "Plus de précision sur les courtes durées",
+                            text = if (currentDays == 0L) stringResource(R.string.settings_skip_never) else stringResource(R.string.settings_skip_hint),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.outline
                         )
@@ -163,12 +165,12 @@ fun SettingsScreen(
             Spacer(Modifier.height(16.dp))
 
             // SECTION INTERACTION
-            SettingsSection(title = "Interaction", icon = Icons.Default.TouchApp) {
+            SettingsSection(title = stringResource(R.string.settings_section_interaction), icon = Icons.Default.TouchApp) {
                 Column {
                     // Inversion du swipe
                     SettingsToggleItem(
-                        title = "Inverser le sens du swipe",
-                        subtitle = "A gauche pour garder, à droite pour supprimer",
+                        title = stringResource(R.string.settings_swipe_invert_label),
+                        subtitle = stringResource(R.string.settings_swipe_invert_desc),
                         checked = uiState.isSwipeInverted,
                         onCheckedChange = { viewModel.setSwipeInverted(it) },
                         icon = Icons.Default.SwapHoriz
@@ -178,7 +180,7 @@ fun SettingsScreen(
 
                     // Position icône plein écran
                     IconPositionPicker(
-                        title = "Position du bouton Plein Écran",
+                        title = stringResource(R.string.settings_fullscreen_pos_label),
                         selectedPosition = uiState.fullscreenButtonPosition,
                         onPositionSelected = { viewModel.setFullscreenButtonPosition(it) }
                     )
@@ -187,7 +189,7 @@ fun SettingsScreen(
 
                     // Position icône Immich
                     IconPositionPicker(
-                        title = "Position du bouton Ouvrir dans Immich",
+                        title = stringResource(R.string.settings_immich_pos_label),
                         selectedPosition = uiState.immichButtonPosition,
                         onPositionSelected = { viewModel.setImmichButtonPosition(it) }
                     )
@@ -197,24 +199,24 @@ fun SettingsScreen(
                     // Comportement vidéo
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Comportement vidéo",
+                            text = stringResource(R.string.settings_video_behavior_label),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Gérer l'interaction avec les autres sons de l'appareil lors de la lecture d'une vidéo",
+                            text = stringResource(R.string.settings_video_behavior_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.outline
                         )
                         Spacer(Modifier.height(12.dp))
                         Column(Modifier.selectableGroup()) {
                             PlaybackOption(
-                                text = "Couper tous les autres sons",
+                                text = stringResource(R.string.settings_video_pause),
                                 selected = uiState.playbackBehavior == PlaybackBehavior.PAUSE_OTHERS,
                                 onClick = { viewModel.setPlaybackBehavior(PlaybackBehavior.PAUSE_OTHERS) }
                             )
                             PlaybackOption(
-                                text = "Jouer par dessus les autres sons",
+                                text = stringResource(R.string.settings_video_ignore),
                                 selected = uiState.playbackBehavior == PlaybackBehavior.IGNORE,
                                 onClick = { viewModel.setPlaybackBehavior(PlaybackBehavior.IGNORE) }
                             )
@@ -226,7 +228,7 @@ fun SettingsScreen(
             Spacer(Modifier.height(16.dp))
 
             // SECTION COMPTE
-            SettingsSection(title = "Compte", icon = Icons.Default.Person) {
+            SettingsSection(title = stringResource(R.string.settings_section_account), icon = Icons.Default.Person) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -238,7 +240,7 @@ fun SettingsScreen(
                         Spacer(Modifier.width(16.dp))
                         Column {
                             Text(text = uiState.userName, style = MaterialTheme.typography.titleMedium)
-                            Text(text = "Connecté au serveur Immich", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                            Text(text = stringResource(R.string.profile_connected_label), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
                         }
                     }
                     Spacer(Modifier.height(24.dp))
@@ -253,7 +255,7 @@ fun SettingsScreen(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Se déconnecter")
+                        Text(stringResource(R.string.profile_logout_button))
                     }
                 }
             }
@@ -265,18 +267,18 @@ fun SettingsScreen(
     if (uiState.showSkipLifespanWarning != null) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissSkipLifespanWarning() },
-            title = { Text("Modifier la durée des SKIP") },
+            title = { Text(stringResource(R.string.settings_skip_warning_title)) },
             text = { 
-                Text("En changeant cette durée, certaines photos que vous aviez 'passées' pourraient réapparaître immédiatement dans votre pile de tri si elles dépassent le nouveau délai.") 
+                Text(stringResource(R.string.settings_skip_warning_msg)) 
             },
             confirmButton = {
                 TextButton(onClick = { viewModel.confirmSkipLifespanChange() }) {
-                    Text("Confirmer")
+                    Text(stringResource(R.string.common_confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissSkipLifespanWarning() }) {
-                    Text("Annuler")
+                    Text(stringResource(R.string.common_cancel))
                 }
             }
         )
@@ -284,82 +286,35 @@ fun SettingsScreen(
 
 }
 
-//@Composable
-//fun CustomLifespanDialog(
-//    currentValue: Long,
-//    onDismiss: () -> Unit,
-//    onConfirm: (Long) -> Unit
-//) {
-//    var sliderValue by remember { mutableStateOf(if (currentValue > 0) currentValue.toFloat() else 90f) }
-//
-//    AlertDialog(
-//        onDismissRequest = onDismiss,
-//        title = { Text("Durée personnalisée") },
-//        text = {
-//            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//                Text(
-//                    text = formatDays(sliderValue.toLong()),
-//                    style = MaterialTheme.typography.headlineMedium,
-//                    color = MaterialTheme.colorScheme.primary
-//                )
-//                Spacer(Modifier.height(16.dp))
-//                Slider(
-//                    value = sliderValue,
-//                    onValueChange = { sliderValue = it },
-//                    valueRange = 1f..1825f, // 5 ans
-//                    steps = 0
-//                )
-//                Text(
-//                    "Faites glisser pour choisir entre 1 jour et 5 ans",
-//                    style = MaterialTheme.typography.bodySmall,
-//                    color = MaterialTheme.colorScheme.outline
-//                )
-//            }
-//        },
-//        confirmButton = {
-//            Button(onClick = { onConfirm(sliderValue.toLong()) }) {
-//                Text("Appliquer")
-//            }
-//        },
-//        dismissButton = {
-//            TextButton(onClick = onDismiss) {
-//                Text("Annuler")
-//            }
-//        }
-//    )
-//}
-
+@Composable
 fun formatDays(days: Long): String {
     return when {
-        days == 0L -> "Jamais"
-        days < 7 -> "$days j"
-        days < 30 -> "${days / 7} sem."
-        days < 360 -> "${days / 30} mois"
+        days == 0L -> stringResource(R.string.duration_never)
+        days < 7 -> stringResource(R.string.duration_day, days)
+        days < 30 -> stringResource(R.string.duration_week, days / 7)
+        days < 360 -> stringResource(R.string.duration_month, days / 30)
         else -> {
-            val years = (days + 5) / 365 // Arrondi léger pour éviter le saut 364j -> 11 mois
-            if (years <= 1L) "1 an" else "$years ans"
+            val years = (days + 5) / 365 
+            if (years <= 1L) stringResource(R.string.duration_year_one) 
+            else stringResource(R.string.duration_years, years)
         }
     }
 }
 
 /**
  * Mappe une valeur de slider (0-500) vers un nombre de jours (0-1825).
- * Échelle non-linéaire pour plus de précision sur les petites durées.
  */
 private fun mapSliderToDays(v: Float): Long {
     if (v <= 0f) return 0L
     return when {
-        v <= 100f -> lerpLong(1, 14, v / 100f)        // 0-20% -> 1-14 jours
-        v <= 200f -> lerpLong(15, 60, (v - 100f) / 100f)   // 20-40% -> 15-60 jours
-        v <= 300f -> lerpLong(61, 180, (v - 200f) / 100f)  // 40-60% -> 2-6 mois
-        v <= 400f -> lerpLong(181, 365, (v - 300f) / 100f) // 60-80% -> 6 mois-1 an
-        else -> lerpLong(366, 1825, (v - 400f) / 100f)     // 80-100% -> 1-5 ans
+        v <= 100f -> lerpLong(1, 14, v / 100f)
+        v <= 200f -> lerpLong(15, 60, (v - 100f) / 100f)
+        v <= 300f -> lerpLong(61, 180, (v - 200f) / 100f)
+        v <= 400f -> lerpLong(181, 365, (v - 300f) / 100f)
+        else -> lerpLong(366, 1825, (v - 400f) / 100f)
     }
 }
 
-/**
- * Mappe un nombre de jours vers une valeur de slider (0-500).
- */
 private fun mapDaysToSlider(d: Long): Float {
     if (d <= 0L) return 0f
     return when {
@@ -444,13 +399,13 @@ fun IconPositionPicker(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CornerButton(
-                    text = "Haut-Gauche",
+                    text = stringResource(R.string.settings_pos_top_left),
                     selected = selectedPosition == IconPosition.TOP_LEFT,
                     onClick = { onPositionSelected(IconPosition.TOP_LEFT) },
                     modifier = Modifier.weight(1f)
                 )
                 CornerButton(
-                    text = "Haut-Droite",
+                    text = stringResource(R.string.settings_pos_top_right),
                     selected = selectedPosition == IconPosition.TOP_RIGHT,
                     onClick = { onPositionSelected(IconPosition.TOP_RIGHT) },
                     modifier = Modifier.weight(1f)
@@ -458,13 +413,13 @@ fun IconPositionPicker(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 CornerButton(
-                    text = "Bas-Gauche",
+                    text = stringResource(R.string.settings_pos_bottom_left),
                     selected = selectedPosition == IconPosition.BOTTOM_LEFT,
                     onClick = { onPositionSelected(IconPosition.BOTTOM_LEFT) },
                     modifier = Modifier.weight(1f)
                 )
                 CornerButton(
-                    text = "Bas-Droite",
+                    text = stringResource(R.string.settings_pos_bottom_right),
                     selected = selectedPosition == IconPosition.BOTTOM_RIGHT,
                     onClick = { onPositionSelected(IconPosition.BOTTOM_RIGHT) },
                     modifier = Modifier.weight(1f)

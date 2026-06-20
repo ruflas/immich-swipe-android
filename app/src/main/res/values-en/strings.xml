@@ -1,0 +1,113 @@
+﻿<resources>
+    <string name="app_name">Immich Swipe</string>
+
+    <!-- Login Screen -->
+    <string name="login_url_label">Server URL</string>
+    <string name="login_url_placeholder">https://your-instance.com</string>
+    <string name="login_api_key_label">API Key</string>
+    <string name="login_button">Login</string>
+    <string name="login_success">Login successful ✔</string>
+    <string name="login_error_unknown">An unknown error occurred</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_swipe">Swipe</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_back">Back</string>
+
+    <!-- Home Screen -->
+    <string name="home_search_placeholder">Search an album…</string>
+    <string name="home_no_results">No albums match your search</string>
+    <string name="home_error_title">Oops! An error occurred</string>
+    <string name="home_retry_button">Retry</string>
+    <string name="home_status_in_progress">In progress</string>
+    <string name="home_status_not_started">Not started</string>
+    <string name="home_status_completed">Completed</string>
+    <string name="home_album_completed">Completed</string>
+    <string name="home_unsynced_changes">Contains %1$d unsynced deletions</string>
+    <string name="home_sorted_count">%1$d / %2$d sorted</string>
+    <string name="home_select_album">Select an album to start!</string>
+    <string name="home_session_title">Sorting session: %1$s</string>
+    <string name="home_photos_to_discover">%1$d photos to discover</string>
+    <string name="home_new_badge">NEW</string>
+    <string name="home_unsynced_badge">NOT SYNCED</string>
+    <string name="home_user_fallback">User</string>
+
+    <!-- Profile Popup & Diag -->
+    <string name="profile_connected_label">Connected to Immich server</string>
+    <string name="profile_logout_button">Logout</string>
+    <string name="profile_source_code">Source code</string>
+    <string name="diag_online">Server online</string>
+    <string name="diag_issues">Issues detected</string>
+    <string name="diag_offline">Server unreachable</string>
+    <string name="diag_unknown">Unknown status</string>
+    <string name="diag_connected_msg">Connected to Immich</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme_label">App theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_layout_label">Default layout</string>
+    <string name="settings_layout_list">List</string>
+    <string name="settings_layout_grid">Grid</string>
+    <string name="settings_section_tri">Sorting</string>
+    <string name="settings_skip_lifespan_label">SKIP lifespan</string>
+    <string name="settings_skip_lifespan_desc">After this delay, \'skipped\' photos become \'unsorted\' again for re-evaluation.</string>
+    <string name="settings_skip_never">SKIP never return</string>
+    <string name="settings_skip_hint">More precision for short durations</string>
+    <string name="settings_skip_warning_title">Modify SKIP duration</string>
+    <string name="settings_skip_warning_msg">By changing this duration, some photos you previously \'skipped\' might immediately reappear in your sorting queue if they exceed the new limit.</string>
+    <string name="settings_section_interaction">Interaction</string>
+    <string name="settings_swipe_invert_label">Invert swipe direction</string>
+    <string name="settings_swipe_invert_desc">Left to keep, right to delete</string>
+    <string name="settings_fullscreen_pos_label">Fullscreen button position</string>
+    <string name="settings_immich_pos_label">Open in Immich button position</string>
+    <string name="settings_video_behavior_label">Video behavior</string>
+    <string name="settings_video_behavior_desc">Manage interaction with other device sounds when playing a video</string>
+    <string name="settings_video_pause">Pause other sounds</string>
+    <string name="settings_video_ignore">Play over other sounds</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_pos_top_left">Top-Left</string>
+    <string name="settings_pos_top_right">Top-Right</string>
+    <string name="settings_pos_bottom_left">Bottom-Left</string>
+    <string name="settings_pos_bottom_right">Bottom-Right</string>
+
+    <!-- Swipe Screen -->
+    <string name="swipe_keep">Keep</string>
+    <string name="swipe_delete">Delete</string>
+    <string name="swipe_skip">Skip</string>
+    <string name="swipe_remaining">Remaining</string>
+    <string name="swipe_summary_title">Sorting summary</string>
+    <string name="swipe_sync_success">Synced!</string>
+    <string name="swipe_sync_success_desc">Your changes are on Immich</string>
+    <string name="swipe_liberate_button">Free %1$s (%2$d items)</string>
+    <string name="swipe_no_deletions">No photos to delete.</string>
+    <string name="swipe_metadata_title">Image details</string>
+    <string name="swipe_metadata_file">File</string>
+    <string name="swipe_metadata_date">Date</string>
+    <string name="swipe_metadata_format">Format</string>
+    <string name="swipe_metadata_size">Size</string>
+    <string name="swipe_metadata_resolution">Resolution</string>
+    <string name="swipe_loading">Loading…</string>
+    <string name="swipe_syncing">Syncing…</string>
+    <string name="swipe_congratulations">Congratulations! Album sorted.</string>
+    <string name="swipe_check_before_delete">Check before deletion</string>
+
+    <!-- Durations -->
+    <string name="duration_never">Never</string>
+    <string name="duration_day">%1$d d</string>
+    <string name="duration_week">%1$d w</string>
+    <string name="duration_month">%1$d m</string>
+    <string name="duration_year_one">1 y</string>
+    <string name="duration_years">%1$d y</string>
+
+    <!-- Common -->
+    <string name="common_confirm">Confirm</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_apply">Apply</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_close">Close</string>
+</resources>
