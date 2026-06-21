@@ -1,0 +1,14 @@
+Immich Swipe is an open-source Android application designed to make sorting your photos and videos hosted on your Immich server easy and fun.
+
+Inspired by the concept of Tinder for photos, it allows you to quickly declutter your library using simple swipe gestures.
+
+Key Features:
+- Fast Sorting Stack: Swipe right to keep, left to delete.
+- Snooze (SKIP): Pass media temporarily and set a reappearance delay.
+- Deferred Sync: Nothing is deleted on your server without your final approval in the Review Mode.
+- Session Save: Your progress in each album is automatically saved.
+- Multi-Album Management: Perfectly handles media present in multiple albums.
+- Connection Diagnostic: Real-time visual indicator of your server status.
+- Modern Interface: Full Material You support with Light and Dark themes.
+
+Disclaimer: This is an independent project and is not affiliated in any way with the official Immich project.

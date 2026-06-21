@@ -1,0 +1,14 @@
+Immich Swipe est une application Android open-source conçue pour faciliter le tri de vos photos et vidéos hébergées sur votre serveur Immich.
+
+Inspirée par le concept de Tinder appliqué aux photos, elle vous permet de nettoyer rapidement votre bibliothèque par de simples gestes de balayage (swipe).
+
+Fonctionnalités clés :
+- Pile de tri rapide : Swiper à droite pour garder, à gauche pour supprimer.
+- Snooze (SKIP) : Passez temporairement un média et définissez un délai de réapparition.
+- Synchronisation différée : Rien n'est supprimé sur votre serveur sans votre accord final dans le Mode Revue.
+- Sauvegarde de session : Votre progression dans chaque album est automatiquement sauvegardée.
+- Gestion multi-albums : Gère parfaitement les médias présents dans plusieurs albums simultanément.
+- Diagnostic de connexion : Indicateur visuel en temps réel de l'état de votre serveur.
+- Interface moderne : Support complet de Material You avec thèmes Clair et Sombre.
+
+Avertissement : Ce projet est indépendant et n'est affilié d'aucune façon avec le projet officiel Immich.

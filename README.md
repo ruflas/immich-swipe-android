@@ -1,5 +1,10 @@
 # Immich Swipe
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/minos2020/immich-swipe)
+![GitHub License](https://img.shields.io/github/license/minos2020/immich-swipe)
+![Kotlin](https://img.shields.io/badge/language-Kotlin-purple)
+![Android](https://img.shields.io/badge/platform-Android-green)
+
 [Version française ici](README.fr.md)
 
 Immich Swipe is an open-source Android application designed to make sorting your photos and videos hosted on your [Immich](https://immich.app/) server easy and fun.

@@ -1,5 +1,10 @@
 # Immich Swipe
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/minos2020/immich-swipe)
+![GitHub License](https://img.shields.io/github/license/minos2020/immich-swipe)
+![Kotlin](https://img.shields.io/badge/langage-Kotlin-purple)
+![Android](https://img.shields.io/badge/plateforme-Android-green)
+
 [English version here](README.md)
 
 Immich Swipe est une application Android open-source conçue pour faciliter le tri de vos photos et vidéos hébergées sur votre serveur [Immich](https://immich.app/).
