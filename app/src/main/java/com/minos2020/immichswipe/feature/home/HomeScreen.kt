@@ -792,8 +792,8 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
                     progress = { progress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(3.dp)
-                        .align(Alignment.TopCenter),
+                        .height(4.dp)
+                        .align(Alignment.BottomCenter),
                     color = MaterialTheme.colorScheme.primary,
                     trackColor = Color.Transparent
                 )
