@@ -1,6 +1,7 @@
 package com.minos2020.immichswipe.data.api
 
 import com.minos2020.immichswipe.core.ConnectionLevel
+import com.minos2020.immichswipe.core.DiagStatus
 import com.minos2020.immichswipe.core.SessionConfig
 import com.minos2020.immichswipe.core.SessionManager
 import okhttp3.Interceptor
@@ -34,39 +35,27 @@ object RetrofitFactory {
                 
                 when (response.code) {
                     in 200..299 -> {
-                        SessionManager.updateStatus(ConnectionLevel.ONLINE, "Connecté à Immich")
+                        SessionManager.updateStatus(ConnectionLevel.ONLINE, DiagStatus.CONNECTED)
                     }
                     401, 403 -> {
-                        SessionManager.updateStatus(
-                            ConnectionLevel.ISSUES, 
-                            "Problème d'authentification", 
-                            "Vérifiez si votre clé API est toujours valide dans les réglages d'Immich."
-                        )
+                        SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.AUTH_ERROR)
                     }
                     502, 503, 504 -> {
-                        SessionManager.updateStatus(
-                            ConnectionLevel.ISSUES, 
-                            "API Immich indisponible (${response.code})", 
-                            "Votre reverse-proxy (Caddy/Nginx) répond, mais le container Immich semble arrêté ou en cours de redémarrage."
-                        )
+                        SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNAVAILABLE, response.code)
                     }
                     else -> {
-                        SessionManager.updateStatus(ConnectionLevel.ISSUES, "Réponse inattendue (${response.code})")
+                        SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNEXPECTED, response.code)
                     }
                 }
                 response
             } catch (e: Exception) {
-                val (msg, hint) = when (e) {
-                    is UnknownHostException -> 
-                        "Serveur introuvable (DNS)" to "L'URL est incorrecte ou votre domaine n'est pas encore propagé."
-                    is SocketTimeoutException -> 
-                        "Délai d'attente dépassé" to "Le serveur est trop lent à répondre. Vérifiez votre connexion montante (Upload) ou la charge du serveur."
-                    is IOException -> 
-                        "Pas de connexion internet" to "Vérifiez que votre téléphone capte le réseau ou que votre serveur est bien allumé et exposé sur internet."
-                    else -> 
-                        "Erreur de connexion" to e.localizedMessage
+                val status = when (e) {
+                    is UnknownHostException -> DiagStatus.DNS_ERROR
+                    is SocketTimeoutException -> DiagStatus.TIMEOUT
+                    is IOException -> DiagStatus.NO_INTERNET
+                    else -> DiagStatus.CONNECTION_ERROR
                 }
-                SessionManager.updateStatus(ConnectionLevel.OFFLINE, msg, hint)
+                SessionManager.updateStatus(ConnectionLevel.OFFLINE, status, rawMessage = e.localizedMessage)
                 throw e
             }
         }

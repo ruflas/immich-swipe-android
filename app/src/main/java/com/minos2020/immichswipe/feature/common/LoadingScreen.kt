@@ -6,7 +6,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.minos2020.immichswipe.R
 
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
@@ -19,7 +21,7 @@ fun LoadingScreen(modifier: Modifier = Modifier) {
         ) {
             CircularProgressIndicator()
             Spacer(modifier = Modifier.height(12.dp))
-            Text("Chargement...")
+            Text(stringResource(R.string.common_loading))
         }
     }
 }

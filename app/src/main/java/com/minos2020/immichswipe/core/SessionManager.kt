@@ -15,10 +15,27 @@ enum class ConnectionLevel(val color: Color) {
     OFFLINE(Color(0xFFF44336))  // Rouge
 }
 
+/**
+ * Types de messages de diagnostic prédéfinis pour la traduction.
+ */
+enum class DiagStatus {
+    CONNECTED,
+    AUTH_ERROR,
+    UNAVAILABLE,
+    UNEXPECTED,
+    DNS_ERROR,
+    TIMEOUT,
+    NO_INTERNET,
+    CONNECTION_ERROR,
+    LOGGED_OUT,
+    UNKNOWN
+}
+
 data class ConnectionStatus(
     val level: ConnectionLevel = ConnectionLevel.ONLINE,
-    val message: String = "Connecté au serveur",
-    val hint: String? = null,
+    val type: DiagStatus = DiagStatus.CONNECTED,
+    val statusCode: Int? = null,
+    val rawMessage: String? = null,
     val lastUpdate: Long = System.currentTimeMillis()
 )
 
@@ -33,8 +50,8 @@ object SessionManager {
     private val _connectionStatus = MutableStateFlow(ConnectionStatus())
     val connectionStatus = _connectionStatus.asStateFlow()
 
-    fun updateStatus(level: ConnectionLevel, message: String, hint: String? = null) {
-        _connectionStatus.value = ConnectionStatus(level, message, hint)
+    fun updateStatus(level: ConnectionLevel, type: DiagStatus, statusCode: Int? = null, rawMessage: String? = null) {
+        _connectionStatus.value = ConnectionStatus(level, type, statusCode, rawMessage)
     }
 
     fun initialize(config: SessionConfig) {
@@ -45,7 +62,7 @@ object SessionManager {
     fun clear() {
         config = null
         api = null
-        _connectionStatus.value = ConnectionStatus(ConnectionLevel.OFFLINE, "Déconnecté")
+        _connectionStatus.value = ConnectionStatus(ConnectionLevel.OFFLINE, DiagStatus.LOGGED_OUT)
     }
 
     fun isLoggedIn(): Boolean = api != null

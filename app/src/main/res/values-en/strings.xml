@@ -42,6 +42,19 @@
     <string name="diag_offline">Server unreachable</string>
     <string name="diag_unknown">Unknown status</string>
     <string name="diag_connected_msg">Connected to Immich</string>
+    <string name="diag_error_auth">Authentication issue</string>
+    <string name="diag_error_auth_hint">Check if your API key is still valid in Immich settings.</string>
+    <string name="diag_error_unavailable">Immich API unavailable (%1$d)</string>
+    <string name="diag_error_unavailable_hint">Your reverse-proxy is responding, but the Immich container seems stopped or restarting.</string>
+    <string name="diag_error_unexpected">Unexpected response (%1$d)</string>
+    <string name="diag_error_dns">Server not found (DNS)</string>
+    <string name="diag_error_dns_hint">The URL is incorrect or your domain has not propagated yet.</string>
+    <string name="diag_error_timeout">Request timeout</string>
+    <string name="diag_error_timeout_hint">The server is taking too long to respond. Check your connection or server load.</string>
+    <string name="diag_error_no_internet">No internet connection</string>
+    <string name="diag_error_no_internet_hint">Check that your phone has network coverage or that your server is turned on.</string>
+    <string name="diag_error_connection">Connection error</string>
+    <string name="diag_logged_out">Logged out</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -77,7 +90,9 @@
 
     <!-- Swipe Screen -->
     <string name="swipe_keep">Keep</string>
+    <string name="swipe_keep_upper">KEEP</string>
     <string name="swipe_delete">Delete</string>
+    <string name="swipe_delete_upper">DELETE</string>
     <string name="swipe_skip">Skip</string>
     <string name="swipe_remaining">Remaining</string>
     <string name="swipe_summary_title">Sorting summary</string>
@@ -104,10 +119,16 @@
     <string name="duration_year_one">1 y</string>
     <string name="duration_years">%1$d y</string>
 
+    <!-- Size units -->
+    <string name="size_unit_gb">%1$.2f GB</string>
+    <string name="size_unit_mb">%1$.2f MB</string>
+    <string name="size_unit_kb">%1$.0f KB</string>
+
     <!-- Common -->
     <string name="common_confirm">Confirm</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_apply">Apply</string>
     <string name="common_retry">Retry</string>
     <string name="common_close">Close</string>
+    <string name="common_loading">Loading…</string>
 </resources>

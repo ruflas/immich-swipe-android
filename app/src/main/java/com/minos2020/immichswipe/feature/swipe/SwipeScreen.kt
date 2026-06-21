@@ -906,16 +906,16 @@ fun SwipeCard(
                     if (isSwipeInverted) {
                         // Inversion des badges
                         if (keepAlpha > 0f) {
-                            IndicatorBadge("DELETE", MaterialRed, Alignment.TopStart, keepAlpha * 0.9f)
+                            IndicatorBadge(stringResource(R.string.swipe_delete_upper), MaterialRed, Alignment.TopStart, keepAlpha * 0.9f)
                         } else if (deleteAlpha > 0f) {
-                            IndicatorBadge("KEEP", MaterialGreen, Alignment.TopEnd, deleteAlpha * 0.9f)
+                            IndicatorBadge(stringResource(R.string.swipe_keep_upper), MaterialGreen, Alignment.TopEnd, deleteAlpha * 0.9f)
                         }
                     } else {
                         // Comportement normal
                         if (keepAlpha > 0f) {
-                            IndicatorBadge("KEEP", MaterialGreen, Alignment.TopStart, keepAlpha * 0.9f)
+                            IndicatorBadge(stringResource(R.string.swipe_keep_upper), MaterialGreen, Alignment.TopStart, keepAlpha * 0.9f)
                         } else if (deleteAlpha > 0f) {
-                            IndicatorBadge("DELETE", MaterialRed, Alignment.TopEnd, deleteAlpha * 0.9f)
+                            IndicatorBadge(stringResource(R.string.swipe_delete_upper), MaterialRed, Alignment.TopEnd, deleteAlpha * 0.9f)
                         }
                     }
                 }
@@ -1094,8 +1094,8 @@ fun MetadataPanel(asset: Asset, onClose: () -> Unit) {
             val formatLabel = if (asset.fileExtension != null) "${asset.type} (.${asset.fileExtension.lowercase()})" else asset.type
             MetadataRow(Icons.Default.Info, stringResource(R.string.swipe_metadata_format), formatLabel)
             asset.exifInfo?.let { exif ->
-                val sizeMb = exif.fileSizeInBytes?.let { String.format(Locale.getDefault(), "%.2f Mo", it / 1024.0 / 1024.0) } ?: "N/A"
-                MetadataRow(Icons.Default.SdStorage, stringResource(R.string.swipe_metadata_size), sizeMb)
+                val sizeLabel = exif.fileSizeInBytes?.let { formatSize(it) } ?: "N/A"
+                MetadataRow(Icons.Default.SdStorage, stringResource(R.string.swipe_metadata_size), sizeLabel)
                 MetadataRow(Icons.Default.AspectRatio, stringResource(R.string.swipe_metadata_resolution), "${exif.imageWidth ?: "?"} x ${exif.imageHeight ?: "?"}")
             } ?: run {
                 MetadataRow(Icons.Default.SdStorage, stringResource(R.string.swipe_metadata_size), stringResource(R.string.swipe_loading))
@@ -1118,14 +1118,15 @@ fun MetadataRow(icon: ImageVector, label: String, value: String) {
 /**
  * Formate une taille en bytes vers une chaîne lisible (Go, Mo).
  */
+@Composable
 fun formatSize(bytes: Long): String {
     val kb = bytes / 1024.0
     val mb = kb / 1024.0
     val gb = mb / 1024.0
     return when {
-        gb >= 1.0 -> String.format(Locale.getDefault(), "%.2f Go", gb)
-        mb >= 1.0 -> String.format(Locale.getDefault(), "%.1f Mo", mb)
-        else -> String.format(Locale.getDefault(), "%.0f Ko", kb)
+        gb >= 1.0 -> stringResource(R.string.size_unit_gb, gb)
+        mb >= 1.0 -> stringResource(R.string.size_unit_mb, mb)
+        else -> stringResource(R.string.size_unit_kb, kb)
     }
 }
 

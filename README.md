@@ -1,29 +1,52 @@
 # Immich Swipe
 
-Immich Swipe est une application Android open-source conçue pour faciliter le tri de vos photos et vidéos hébergées sur votre serveur [Immich](https://immich.app/).
+[Version française ici](README.fr.md)
 
-Inspirée par l'interface des applications de rencontre, elle vous permet de trier rapidement vos médias par de simples gestes de balayage (swipe).
+Immich Swipe is an open-source Android application designed to make sorting your photos and videos hosted on your [Immich](https://immich.app/) server easy and fun.
 
-## Fonctionnalités
+Inspired by the [Sponge](https://get-sponge.com/) app (similar concept for local files), it allows you to quickly sort your media using simple swipe gestures, featuring a smooth and modern interface.
 
-- **Tri Rapide** : Swipez à droite pour garder, à gauche pour supprimer (configurable).
-- **Mode Revue** : Parcourez vos albums et décidez plus tard pour les médias ignorés.
-- **Gestion Multi-Albums** : Les décisions de tri sont liées au couple média/album.
-- **Synchronisation en Temps Réel** : Les suppressions sont appliquées directement sur votre serveur Immich.
-- **Diagnostic de Connexion** : Un indicateur visuel (Vert/Orange/Rouge) vous informe en temps réel de l'état de votre serveur.
-- **Snooze (SKIP)** : Configurez une durée de vie pour les médias passés pour les réévaluer plus tard.
-- **Interface Moderne** : Développée avec Jetpack Compose et Material Design 3.
+> **Note**: This project started as a personal need and was developed with the help of AI. Although I am not a developer by trade, I place great importance on stability and user experience.
+>
+> **Disclaimer**: This is an independent project and is not affiliated in any way with the official Immich project.
 
-## Installation
+## 📸 Overview
 
-Vous pouvez télécharger la dernière version de l'APK dans la section [Releases](https://github.com/minos2020/immich-swipe/releases) ou l'installer via F-Droid (prochainement).
+| Sorting Stack | Review Mode (Summary) | Settings & SKIP |
+|:---:|:---:|:---:|
+| <img src="metadata/en-US/images/phoneScreenshots/swipe.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/review.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/settings.png" width="200"> |
+| *Swipe to decide* | *Check before deleting* | *Customize your experience* |
 
-## Configuration
+## ✨ Features
 
-1. Entrez l'URL de votre serveur Immich (ex: `https://immich.votre-domaine.fr`).
-2. Entrez votre clé API Immich (générable dans les paramètres de votre compte Immich).
-3. Sélectionnez un album et commencez à trier !
+- **🚀 Fast Sorting Stack**: Swipe right to keep, left to delete. The scrolling banner at the top gives you direct visual feedback on your choices and upcoming media.
+- **🕒 Snooze (SKIP)**: Unsure about a photo? Skip it. It will automatically reappear in your stack after a delay you configure (e.g., 1 day, 1 month, or never).
+- **🛡️ Deferred Sync**: Immich Swipe doesn't delete anything without your final approval. Your choices are stored locally, and you trigger the actual deletion on the Immich server when you're ready via **Review Mode**.
+- **💾 Session Save**: Leave the app and come back later: your progress in each album is saved.
+- **📂 Multi-Album Management**: The app perfectly handles media present in multiple albums simultaneously.
+- **🚦 Connection Diagnostic**: A visual indicator (Green/Orange/Red) informs you in real-time of the connection status to your server.
+- **🎨 Modern Interface**: Developed with Jetpack Compose and Material Design 3, supporting both Light and Dark themes.
 
-## Licence
+## ⚙️ Configuration
 
-Ce projet est sous licence GNU GPL v3. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+1. Enter your Immich server URL (e.g., `https://immich.your-domain.com`).
+2. Enter your Immich API Key.
+   - **Required Permissions**: For the app to function correctly, your API key must have the following permissions:
+     - `user.read`
+     - `album.read`
+     - `asset.read`
+     - `asset.delete`
+3. Select an album and start sorting!
+
+## 🛠️ Build
+
+If you want to compile the application yourself:
+
+- **JDK 17** or higher required.
+- **Android Studio** (Ladybug version or newer recommended).
+- Clone the repository and import the project into Android Studio.
+- Use `./gradlew assembleDebug` to generate a test APK.
+
+## 📄 License
+
+This project is licensed under the GNU GPL v3. See the [LICENSE](LICENSE) file for more details.

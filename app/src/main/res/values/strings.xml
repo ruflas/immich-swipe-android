@@ -42,6 +42,19 @@
     <string name="diag_offline">Serveur injoignable</string>
     <string name="diag_unknown">Statut inconnu</string>
     <string name="diag_connected_msg">Connecté à Immich</string>
+    <string name="diag_error_auth">Problème d\'authentification</string>
+    <string name="diag_error_auth_hint">Vérifiez si votre clé API est toujours valide dans les réglages d\'Immich.</string>
+    <string name="diag_error_unavailable">API Immich indisponible (%1$d)</string>
+    <string name="diag_error_unavailable_hint">Votre reverse-proxy répond, mais le container Immich semble arrêté ou en cours de redémarrage.</string>
+    <string name="diag_error_unexpected">Réponse inattendue (%1$d)</string>
+    <string name="diag_error_dns">Serveur introuvable (DNS)</string>
+    <string name="diag_error_dns_hint">L\'URL est incorrecte ou votre domaine n\'est pas encore propagé.</string>
+    <string name="diag_error_timeout">Délai d\'attente dépassé</string>
+    <string name="diag_error_timeout_hint">Le serveur est trop lent à répondre. Vérifiez votre connexion ou la charge du serveur.</string>
+    <string name="diag_error_no_internet">Pas de connexion internet</string>
+    <string name="diag_error_no_internet_hint">Vérifiez que votre téléphone capte le réseau ou que votre serveur est bien allumé.</string>
+    <string name="diag_error_connection">Erreur de connexion</string>
+    <string name="diag_logged_out">Déconnecté</string>
 
     <!-- Paramètres -->
     <string name="settings_title">Paramètres</string>
@@ -77,7 +90,9 @@
 
     <!-- Écran Swipe -->
     <string name="swipe_keep">Garder</string>
+    <string name="swipe_keep_upper">GARDER</string>
     <string name="swipe_delete">Supprimer</string>
+    <string name="swipe_delete_upper">SUPPRIMER</string>
     <string name="swipe_skip">Passer</string>
     <string name="swipe_remaining">Restant</string>
     <string name="swipe_summary_title">Résumé du tri</string>
@@ -104,10 +119,16 @@
     <string name="duration_year_one">1 an</string>
     <string name="duration_years">%1$d ans</string>
 
+    <!-- Unités de taille -->
+    <string name="size_unit_gb">%1$.2f Go</string>
+    <string name="size_unit_mb">%1$.2f Mo</string>
+    <string name="size_unit_kb">%1$.0f Ko</string>
+
     <!-- Commun -->
     <string name="common_confirm">Confirmer</string>
     <string name="common_cancel">Annuler</string>
     <string name="common_apply">Appliquer</string>
     <string name="common_retry">Réessayer</string>
     <string name="common_close">Fermer</string>
+    <string name="common_loading">Chargement…</string>
 </resources>

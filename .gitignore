@@ -1,15 +1,32 @@
-*.iml
+# Build folders
 .gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
+
+# Local configuration & Secrets
+/local.properties
 local.properties
+google-services.json
+secrets.xml
+
+# Keystore files (CRITICAL: Do not commit)
+*.jks
+*.keystore
+*.p12
+
+# Android Studio / IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# OS specific
+.DS_Store
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
