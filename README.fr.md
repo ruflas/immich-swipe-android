@@ -50,6 +50,7 @@ Inspirée par l'application [Sponge](https://get-sponge.com/) (concept similaire
      - `album.read`
      - `asset.read`
      - `asset.delete`
+   > **Serveur Immich v3+** : Pour une raison encore inexpliquée, l'utilisation de ces 4 permissions avec la v3 du serveur Immich rend la récupération des assets TRES lente, rendant l'application inutilisable. Alors qu'avec une clé possédant toutes les permissions, cela fonctionne parfaitement. L'app n'utilise pourtant que des endpoints qui ne requièrent aucune autre permission que les 4 ci-dessus...
 3. Sélectionnez un album et commencez à trier !
 
 ## 📦 Installation

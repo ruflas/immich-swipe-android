@@ -50,6 +50,7 @@ Inspired by the [Sponge](https://get-sponge.com/) app (similar concept for local
      - `album.read`
      - `asset.read`
      - `asset.delete`
+   > **Immich server v3+** : For some reason that I'm still trying to understand, allowing only those 4 permissions with Immich Server v3 makes the assets retrieval VERY slow, making the app unusable. Meanwhile, if you allow all permissions it works like a charm. The app only uses API endpoints that require those 4 permissions so... I do not understand yet.
 3. Select an album and start sorting!
 
 ## 📦 Installation
