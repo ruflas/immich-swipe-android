@@ -17,17 +17,17 @@ Inspired by the [Sponge](https://get-sponge.com/) app (similar concept for local
 
 ## 📸 Overview
 
-|                                         Home Screen                                          |                                    Sorting Stack                                     |                                      Review Mode                                      |
-|:--------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------:|
-| <img src="metadata/en-US/images/phoneScreenshots/Light_HomeScreen_GridView.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/Light_SwipeScreen.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/Light_ReviewScreen.png" width="200"> |
-|                                     *Browse your albums*                                     |                                  *Swipe to decide*                                   |                                *Check before deleting*                                |
+|                                         Home Screen                                          |                                    Sorting Stack                                     |                                       Review Mode                                        |
+|:--------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------:|
+| <img src="metadata/en-US/images/phoneScreenshots/01_Light_HomeScreen_GridView.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/02_Light_SwipeScreen.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/03_Light_ReviewScreen.png" width="200"> |
+|                                     *Browse your albums*                                     |                                  *Swipe to decide*                                   |                                 *Check before deleting*                                  |
 
 <details>
 <summary>🌙 <b>View Dark Mode Gallery</b></summary>
 
-|                                     Home Screen (Dark)                                      |                                Sorting Stack (Dark)                                 |                                  Review Mode (Dark)                                  |                                    Settings (Dark)                                     |
-|:-------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------:|
-| <img src="metadata/en-US/images/phoneScreenshots/Dark_HomeScreen_GridView.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/Dark_SwipeScreen.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/Dark_ReviewScreen.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/Dark_SettingsScreen.png" width="200"> |
+|                                       Home Screen (Dark)                                       |                                  Sorting Stack (Dark)                                  |                                   Review Mode (Dark)                                    |                                    Settings (Dark)                                     |
+|:----------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------:|
+| <img src="metadata/en-US/images/phoneScreenshots/05_Dark_HomeScreen_GridView.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/07_Dark_SwipeScreen.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/08_Dark_ReviewScreen.png" width="200"> | <img src="metadata/en-US/images/phoneScreenshots/Dark_SettingsScreen.png" width="200"> |
 
 </details>
 
@@ -50,6 +50,7 @@ Inspired by the [Sponge](https://get-sponge.com/) app (similar concept for local
      - `album.read`
      - `asset.read`
      - `asset.delete`
+   > **Immich server v3+** : For some reason that I'm still trying to understand, allowing only those 4 permissions with Immich Server v3 makes the assets retrieval VERY slow, making the app unusable. Meanwhile, if you allow all permissions it works like a charm. The app only uses API endpoints that require those 4 permissions so... I do not understand yet.
 3. Select an album and start sorting!
 
 ## 📦 Installation
