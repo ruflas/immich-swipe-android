@@ -35,6 +35,15 @@ class SwipeDecisionRepository(
     }
 
     /**
+     * Marque plusieurs assets comme synchronisés.
+     */
+    suspend fun markAsSynced(assetIds: List<String>) {
+        if (assetIds.isNotEmpty()) {
+            swipeDecisionDao.markAsSynced(assetIds)
+        }
+    }
+
+    /**
      * Récupère toutes les décisions d'un album sous forme de Flow.
      */
     fun getDecisionsForAlbum(albumId: String): Flow<List<SwipeDecisionEntity>> {

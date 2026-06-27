@@ -30,8 +30,8 @@ data class HomeUiState(
     val previousTab: HomeTab = HomeTab.HOME,
     // Map pour stocker le nombre de photos triées par albumId
     val albumTreatedCounts: Map<String, Int> = emptyMap(),
-    // Map pour stocker le nombre de suppressions en attente par albumId
-    val albumPendingDeletes: Map<String, Int> = emptyMap(),
+    // Map pour stocker le nombre de modifications non synchronisées par albumId
+    val albumUnsyncedChanges: Map<String, Int> = emptyMap(),
     val isGridView: Boolean = false, // Toggle entre liste et grille
     val searchQuery: String = "", // Texte de recherche pour filtrer les albums
     val connectionStatus: ConnectionStatus = ConnectionStatus()

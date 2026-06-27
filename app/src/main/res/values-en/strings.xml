@@ -24,7 +24,7 @@
     <string name="home_status_not_started">Not started</string>
     <string name="home_status_completed">Completed</string>
     <string name="home_album_completed">Completed</string>
-    <string name="home_unsynced_changes">Contains %1$d unsynced deletions</string>
+    <string name="home_unsynced_changes">Contains %1$d unsynced changes</string>
     <string name="home_sorted_count">%1$d / %2$d sorted</string>
     <string name="home_select_album">Select an album to start!</string>
     <string name="home_session_title">Sorting session: %1$s</string>

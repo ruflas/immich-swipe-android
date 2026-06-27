@@ -70,11 +70,11 @@ class HomeViewModel(
         viewModelScope.launch {
             swipeDecisionRepository.getAllAlbumDecisionCounts().collect { stats ->
                 val treatedMap = stats.associate { it.albumId to it.totalCount }
-                val deleteMap = stats.associate { it.albumId to it.deleteCount }
+                val unsyncedMap = stats.associate { it.albumId to it.unsyncedCount }
                 _uiState.update { 
                     it.copy(
                         albumTreatedCounts = treatedMap,
-                        albumPendingDeletes = deleteMap
+                        albumUnsyncedChanges = unsyncedMap
                     )
                 }
             }

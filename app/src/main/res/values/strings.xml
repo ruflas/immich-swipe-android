@@ -24,7 +24,7 @@
     <string name="home_status_not_started">Pas commencé</string>
     <string name="home_status_completed">Terminés</string>
     <string name="home_album_completed">Terminé</string>
-    <string name="home_unsynced_changes">Contient %1$d suppressions non synchronisées</string>
+    <string name="home_unsynced_changes">Contient %1$d changements non synchronisés</string>
     <string name="home_sorted_count">%1$d / %2$d triés</string>
     <string name="home_select_album">Sélectionnez un album pour commencer !</string>
     <string name="home_session_title">Session de tri : %1$s</string>

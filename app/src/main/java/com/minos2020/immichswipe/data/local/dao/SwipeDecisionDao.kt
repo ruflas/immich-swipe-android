@@ -66,6 +66,12 @@ interface SwipeDecisionDao {
     suspend fun getDecisionCountForAlbum(albumId: String): Int
 
     /**
+     * Marque des décisions comme synchronisées.
+     */
+    @Query("UPDATE swipe_decisions SET isSynced = 1 WHERE assetId IN (:assetIds)")
+    suspend fun markAsSynced(assetIds: List<String>)
+
+    /**
      * Supprime les décisions 'SKIP' plus vieilles qu'un certain timestamp.
      */
     @Query("DELETE FROM swipe_decisions WHERE decision = 'SKIP' AND createdAt < :threshold")
@@ -78,7 +84,7 @@ interface SwipeDecisionDao {
     @Query("""
         SELECT albumId, 
                COUNT(*) as totalCount, 
-               SUM(CASE WHEN decision = 'DELETE' THEN 1 ELSE 0 END) as deleteCount 
+               SUM(CASE WHEN isSynced = 0 THEN 1 ELSE 0 END) as unsyncedCount 
         FROM swipe_decisions 
         GROUP BY albumId
     """)
@@ -91,5 +97,5 @@ interface SwipeDecisionDao {
 data class AlbumDecisionCount(
     val albumId: String,
     val totalCount: Int,
-    val deleteCount: Int
+    val unsyncedCount: Int
 )

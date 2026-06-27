@@ -259,7 +259,7 @@ fun HomeScreen(
                                 AlbumGrid(
                                     groupedAlbums = uiState.groupedAlbums,
                                     treatedCounts = uiState.albumTreatedCounts,
-                                    pendingDeletes = uiState.albumPendingDeletes,
+                                    unsyncedChanges = uiState.albumUnsyncedChanges,
                                     isRefreshing = uiState.isRefreshing,
                                     onRefresh = { viewModel.refreshAlbums() },
                                     onAlbumClick = { viewModel.onAlbumSelected(it) }
@@ -268,7 +268,7 @@ fun HomeScreen(
                                 AlbumList(
                                     groupedAlbums = uiState.groupedAlbums,
                                     treatedCounts = uiState.albumTreatedCounts,
-                                    pendingDeletes = uiState.albumPendingDeletes,
+                                    unsyncedChanges = uiState.albumUnsyncedChanges,
                                     isRefreshing = uiState.isRefreshing,
                                     onRefresh = { viewModel.refreshAlbums() },
                                     onAlbumClick = { viewModel.onAlbumSelected(it) }
@@ -565,7 +565,7 @@ fun PopupActionItem(
 fun AlbumList(
     groupedAlbums: Map<AlbumStatus, List<Album>>,
     treatedCounts: Map<String, Int>,
-    pendingDeletes: Map<String, Int>,
+    unsyncedChanges: Map<String, Int>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onAlbumClick: (Album) -> Unit
@@ -605,7 +605,7 @@ fun AlbumList(
                         AlbumItem(
                             album = album,
                             treatedCount = treatedCounts[album.id] ?: 0,
-                            pendingDeleteCount = pendingDeletes[album.id] ?: 0,
+                            unsyncedCount = unsyncedChanges[album.id] ?: 0,
                             onClick = { onAlbumClick(album) }
                         )
                     }
@@ -619,7 +619,7 @@ fun AlbumList(
 fun AlbumGrid(
     groupedAlbums: Map<AlbumStatus, List<Album>>,
     treatedCounts: Map<String, Int>,
-    pendingDeletes: Map<String, Int>,
+    unsyncedChanges: Map<String, Int>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onAlbumClick: (Album) -> Unit
@@ -660,7 +660,7 @@ fun AlbumGrid(
                         AlbumGridItem(
                             album = album,
                             treatedCount = treatedCounts[album.id] ?: 0,
-                            pendingDeleteCount = pendingDeletes[album.id] ?: 0,
+                            unsyncedCount = unsyncedChanges[album.id] ?: 0,
                             onClick = { onAlbumClick(album) }
                         )
                     }
@@ -671,14 +671,14 @@ fun AlbumGrid(
 }
 
 @Composable
-fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick: () -> Unit) {
+fun AlbumGridItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -> Unit) {
     val context = LocalContext.current
     val baseUrl = remember { SessionManager.getBaseUrl()?.removeSuffix("/") }
     val apiKey = remember { SessionManager.getApiKey() ?: "" }
     val progress = if (album.assetCount > 0) treatedCount.toFloat() / album.assetCount else 0f
     val isCompleted = album.assetCount in 1..treatedCount
     val isNotStarted = treatedCount == 0
-    val hasUnsyncedChanges = pendingDeleteCount > 0
+    val hasUnsyncedChanges = unsyncedCount > 0
 
     Card(
         modifier = Modifier
@@ -810,14 +810,14 @@ fun AlbumGridItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onCl
 }
 
 @Composable
-fun AlbumItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick: () -> Unit) {
+fun AlbumItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -> Unit) {
     val context = LocalContext.current
     val baseUrl = remember { SessionManager.getBaseUrl()?.removeSuffix("/") }
     val apiKey = remember { SessionManager.getApiKey() ?: "" }
     val progress = if (album.assetCount > 0) treatedCount.toFloat() / album.assetCount else 0f
     val isCompleted = album.assetCount in 1..treatedCount
     val isNotStarted = treatedCount == 0
-    val hasUnsyncedChanges = pendingDeleteCount > 0
+    val hasUnsyncedChanges = unsyncedCount > 0
 
     Card(
         modifier = Modifier
@@ -901,7 +901,7 @@ fun AlbumItem(album: Album, treatedCount: Int, pendingDeleteCount: Int, onClick:
                     }
                     if (hasUnsyncedChanges) {
                         Text(
-                            text = stringResource(R.string.home_unsynced_changes, pendingDeleteCount),
+                            text = stringResource(R.string.home_unsynced_changes, unsyncedCount),
                             fontSize = 11.sp,
                             color = Color(0xFFD32F2F),
                             fontWeight = FontWeight.Bold

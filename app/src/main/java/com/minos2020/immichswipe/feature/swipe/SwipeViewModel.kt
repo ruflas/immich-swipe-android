@@ -151,12 +151,22 @@ class SwipeViewModel(
                         val isExpired = (currentTime - entity.createdAt) > lifespanMs
                         if (isExpired) return@forEach
                     }
-                    decisionMap[entity.assetId] = decision
-                    entity.fileSize?.let { sizeMap[entity.assetId] = it }
+
+                    // On ne met dans l'état de l'UI (Timeline/Pile) que ce qui n'est PAS synchronisé
+                    if (!entity.isSynced) {
+                        decisionMap[entity.assetId] = decision
+                        entity.fileSize?.let { sizeMap[entity.assetId] = it }
+                    }
                 }
+
+                // Filtrage de la liste des assets pour ne garder que la pile de travail
+                // Pile de travail = Assets sans décision OU Assets avec décision NON synchronisée
+                val syncedIds = localDecisions.filter { it.isSynced }.map { it.assetId }.toSet()
+                val workPileAssets = assets.filter { !syncedIds.contains(it.id) }
 
                 // NETTOYAGE : Si on a des décisions locales pour des assets qui n'existent plus
                 // dans cet album sur le serveur, on les supprime.
+                // Cela peut notamment arriver si des assets présents dans plusieurs albums ont été supprimés dans un des albums.
                 // Cela évite les compteurs incohérents (ex: 7/6 triés).
                 val serverAssetIds = assets.map { it.id }.toSet()
                 val invalidAssetIds = localDecisions.map { it.assetId }.filter { !serverAssetIds.contains(it) }
@@ -166,15 +176,18 @@ class SwipeViewModel(
                     // car l'absence dans CET album ne veut pas dire que l'asset est mort sur Immich
                     // (il a pu être simplement retiré de l'album).
                     swipeDecisionRepository.removeDecisions(invalidAssetIds, album.id)
-                    invalidAssetIds.forEach { decisionMap.remove(it) }
+                    invalidAssetIds.forEach { 
+                        decisionMap.remove(it)
+                        sizeMap.remove(it)
+                    }
                 }
 
-                // On cherche le premier index non traité
-                val firstUnprocessedIndex = assets.indexOfFirst { !decisionMap.containsKey(it.id) }
-                    .let { if (it == -1) assets.size else it }
+                // On cherche le premier index non traité dans la pile filtrée
+                val firstUnprocessedIndex = workPileAssets.indexOfFirst { !decisionMap.containsKey(it.id) }
+                    .let { if (it == -1) workPileAssets.size else it }
 
                 _uiState.value = _uiState.value.copy(
-                    assets = assets,
+                    assets = workPileAssets,
                     decisions = decisionMap,
                     assetSizes = sizeMap,
                     currentIndex = firstUnprocessedIndex,
@@ -182,8 +195,8 @@ class SwipeViewModel(
                 )
                 
                 // On charge les détails de l'asset actuel
-                if (firstUnprocessedIndex < assets.size) {
-                    loadAssetDetail(assets[firstUnprocessedIndex].id, firstUnprocessedIndex)
+                if (firstUnprocessedIndex < workPileAssets.size) {
+                    loadAssetDetail(workPileAssets[firstUnprocessedIndex].id, firstUnprocessedIndex)
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -405,77 +418,71 @@ class SwipeViewModel(
     fun applyChanges() {
         val currentState = _uiState.value
         val decisions = currentState.decisions
+        val assetSizes = currentState.assetSizes
         
         val toDelete = decisions.filter { it.value == SwipeDecision.DELETE }.keys.toList()
         val toArchive = decisions.filter { it.value == SwipeDecision.ARCHIVE }.keys.toList()
         val toLock = decisions.filter { it.value == SwipeDecision.LOCK }.keys.toList()
+        val toKeep = decisions.filter { it.value == SwipeDecision.KEEP }.keys.toList()
         
-        // Gestion des favoris (on ne prend que ceux qui ont réellement changé localement)
+        // Gestion des favoris
         val toFavorite = currentState.localFavorites.filter { it.value }.keys.toList()
         val toUnfavorite = currentState.localFavorites.filter { !it.value }.keys.toList()
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isSyncing = true)
             try {
-                // 1. Appels API pour appliquer les changements sur Immich
-                if (toDelete.isNotEmpty()) {
-                    assetRepository.deleteAssets(toDelete)
-                }
-                
-                if (toFavorite.isNotEmpty()) {
-                    assetRepository.updateAssets(toFavorite, isFavorite = true)
-                }
-                if (toUnfavorite.isNotEmpty()) {
-                    assetRepository.updateAssets(toUnfavorite, isFavorite = false)
-                }
-                
-                if (toArchive.isNotEmpty()) {
-                    assetRepository.updateAssets(toArchive, visibility = "archive")
-                }
-                
-                if (toLock.isNotEmpty()) {
-                    assetRepository.updateAssets(toLock, visibility = "locked")
-                }
+                // 1. Appels API
+                if (toDelete.isNotEmpty()) assetRepository.deleteAssets(toDelete)
+                if (toFavorite.isNotEmpty()) assetRepository.updateAssets(toFavorite, isFavorite = true)
+                if (toUnfavorite.isNotEmpty()) assetRepository.updateAssets(toUnfavorite, isFavorite = false)
+                if (toArchive.isNotEmpty()) assetRepository.updateAssets(toArchive, visibility = "archive")
+                if (toLock.isNotEmpty()) assetRepository.updateAssets(toLock, visibility = "locked")
 
-                // 2. Vérification immédiate : On recharge la liste depuis le serveur
+                // 2. Vérification et mise à jour de la base locale
                 val freshAssets = assetRepository.getAssetsByAlbum(album.id)
                 val freshIds = freshAssets.map { it.id }.toSet()
 
-                // 3. Identification des échecs (uniquement pour la suppression car l'asset doit disparaître de l'album)
-                val failedDeletions = toDelete.filter { freshIds.contains(it) }
+                // - Identification des succès (ceux qui ont disparu de l'album)
+                // Note: LOCK retire l'asset de l'album sur Immich, donc on le traite comme DELETE pour le nettoyage
+                val successfullyDisappeared = (toDelete + toLock).filter { !freshIds.contains(it) }
+                val failedDeletionsCount = toDelete.size - toDelete.filter { disappeared -> successfullyDisappeared.contains(disappeared) }.size
                 
-                // 4. Nettoyage de la base locale :
-                // On considère qu'une décision est "appliquée" si elle n'est plus dans la liste des assets de l'album
-                // (soit car supprimée, soit archivée/lockée et donc sortie de la timeline par Immich).
-                val appliedIds = decisions.keys.filter { !freshIds.contains(it) }
-                if (appliedIds.isNotEmpty()) {
-                    swipeDecisionRepository.removeDecisionsFromAllAlbums(appliedIds)
+                val successfulKeeps = (toKeep + toArchive).filter { freshIds.contains(it) }
+
+                // 3. Mise à jour de la base de données locale
+                if (successfullyDisappeared.isNotEmpty()) {
+                    // Statistiques uniquement pour les vrais DELETE
+                    val successfulDeletions = toDelete.filter { successfullyDisappeared.contains(it) }
+                    if (successfulDeletions.isNotEmpty()) {
+                        val totalBytes = successfulDeletions.sumOf { assetSizes[it] ?: 0L }
+                        sessionRepository.addDeletedStats(totalBytes, successfulDeletions.size)
+                    }
+                    // On retire de la base locale car ils ne sont plus dans l'album
+                    swipeDecisionRepository.removeDecisionsFromAllAlbums(successfullyDisappeared)
                 }
 
-                // Cas particulier : Favori reste dans l'album, on le marque traité localement aussi si synchro OK
-                // En fait, une fois que c'est synchronisé, on veut souvent repartir à zéro pour cet album
-                // ou garder les décisions "KEEP" locales si on veut. 
-                // Pour l'instant on garde la logique : si c'est encore là, la décision reste locale.
+                if (successfulKeeps.isNotEmpty()) {
+                    swipeDecisionRepository.markAsSynced(successfulKeeps)
+                }
 
-                if (failedDeletions.isNotEmpty()) {
+                // 4. Feedback utilisateur et rechargement
+                if (failedDeletionsCount > 0) {
                     _uiState.value = _uiState.value.copy(
                         isSyncing = false,
                         showSummary = false,
-                        error = "Attention : ${failedDeletions.size} photos n'ont pas pu être supprimées. Vérifiez votre connexion ou vos droits."
+                        error = "Attention : $failedDeletionsCount photos n'ont pas pu être supprimées. Vérifiez votre connexion ou vos droits."
                     )
                 } else {
-                    // Succès total : On lance l'animation
                     _uiState.value = _uiState.value.copy(
                         isSyncing = false,
                         showSummary = false,
                         showSuccessAnimation = true
                     )
-                    // On cache l'animation après 2.5 secondes
                     delay(2500)
                     _uiState.value = _uiState.value.copy(showSuccessAnimation = false)
                 }
                 
-                // On recharge tout l'état proprement (merge final)
                 loadAssetsAndDecisions()
                 
             } catch (e: Exception) {
