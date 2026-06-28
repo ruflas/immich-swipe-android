@@ -153,8 +153,7 @@ class SwipeViewModel(
                     }
 
                     // On ne met dans l'état de l'UI (Timeline/Pile) que ce qui n'est PAS synchronisé
-                    // Note: on traite les anciens SKIP comme synchronisés pour les sortir de la pile
-                    if (!entity.isSynced && decision != SwipeDecision.SKIP) {
+                    if (!entity.isSynced) {
                         decisionMap[entity.assetId] = decision
                         entity.fileSize?.let { sizeMap[entity.assetId] = it }
                     }
@@ -162,11 +161,8 @@ class SwipeViewModel(
 
                 // Filtrage de la liste des assets pour ne garder que la pile de travail
                 // Pile de travail = Assets sans décision OU Assets avec décision NON synchronisée
-                // Note: On exclut aussi les SKIP (même si pas encore synced en base suite à ancienne version)
-                val syncedOrSkippedIds = localDecisions
-                    .filter { it.isSynced || it.decision == "SKIP" }
-                    .map { it.assetId }.toSet()
-                val workPileAssets = assets.filter { !syncedOrSkippedIds.contains(it.id) }
+                val syncedIds = localDecisions.filter { it.isSynced }.map { it.assetId }.toSet()
+                val workPileAssets = assets.filter { !syncedIds.contains(it.id) }
 
                 // NETTOYAGE : Si on a des décisions locales pour des assets qui n'existent plus
                 // dans cet album sur le serveur, on les supprime.
@@ -244,7 +240,7 @@ class SwipeViewModel(
                 albumId = album.id,
                 decision = decision.name,
                 fileSize = currentSize,
-                isSynced = decision == SwipeDecision.SKIP // Le SKIP est considéré synchronisé immédiatement (local)
+                isSynced = false // Toujours false au départ, même pour SKIP
             )
         }
 
@@ -429,6 +425,7 @@ class SwipeViewModel(
         val toArchive = decisions.filter { it.value == SwipeDecision.ARCHIVE }.keys.toList()
         val toLock = decisions.filter { it.value == SwipeDecision.LOCK }.keys.toList()
         val toKeep = decisions.filter { it.value == SwipeDecision.KEEP }.keys.toList()
+        val toSkip = decisions.filter { it.value == SwipeDecision.SKIP }.keys.toList()
         
         // Gestion des favoris
         val toFavorite = currentState.localFavorites.filter { it.value }.keys.toList()
@@ -453,7 +450,7 @@ class SwipeViewModel(
                 val successfullyDisappeared = (toDelete + toLock).filter { !freshIds.contains(it) }
                 val failedDeletionsCount = toDelete.size - toDelete.filter { disappeared -> successfullyDisappeared.contains(disappeared) }.size
                 
-                val successfulKeeps = (toKeep + toArchive).filter { freshIds.contains(it) }
+                val successfulKeeps = (toKeep + toArchive + toSkip).filter { freshIds.contains(it) || toSkip.contains(it) }
 
                 // 3. Mise à jour de la base de données locale
                 if (successfullyDisappeared.isNotEmpty()) {

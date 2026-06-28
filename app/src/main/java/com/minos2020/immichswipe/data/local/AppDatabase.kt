@@ -24,11 +24,13 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         /**
          * Migration ROOM de la version 2 vers la version 3.
-         * Ajoute la colonne 'fileSize' à la table 'swipe_decisions'.
+         * - Ajoute la colonne 'fileSize'.
+         * - Marque les 'SKIP' comme synchronisés (décision locale). --> plus besoin
          */
         private val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE swipe_decisions ADD COLUMN fileSize INTEGER DEFAULT NULL")
+//                db.execSQL("UPDATE swipe_decisions SET isSynced = 1 WHERE decision = 'SKIP'")
             }
         }
 
