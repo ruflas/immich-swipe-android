@@ -51,7 +51,8 @@ Inspired by the [Sponge](https://play.google.com/store/apps/details?id=com.prism
      - `asset.read`
      - `asset.view`
      - `asset.delete`
-     - `userProfileImage.read` (Optional)
+     - `asset.update` (Optional --> if you want to archive assets, add them to favourites or to locked folder)
+     - `userProfileImage.read` (Optional --> to show user profile image)
 3. Select an album and start sorting!
 
 ## 📦 Installation

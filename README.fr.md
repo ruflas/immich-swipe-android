@@ -51,7 +51,8 @@ Inspirée par l'application [Sponge](https://play.google.com/store/apps/details?
      - `asset.read`
      - `asset.view`
      - `asset.delete`
-     - `userProfileImage.read` (Optionnel)
+     - `asset.update` (Optionnel --> si vous souhaitez pouvoir archiver des assets, les ajouter aux favoris ou encore les envoyer dans le dossier verrouillé)
+     - `userProfileImage.read` (Optionnel --> permet d'afficher l'image du profil utilisateur)
 3. Sélectionnez un album et commencez à trier !
 
 ## 📦 Installation
