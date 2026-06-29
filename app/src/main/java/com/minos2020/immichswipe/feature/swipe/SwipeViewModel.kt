@@ -161,8 +161,27 @@ class SwipeViewModel(
 
                 // Filtrage de la liste des assets pour ne garder que la pile de travail
                 // Pile de travail = Assets sans décision OU Assets avec décision NON synchronisée
-                val syncedIds = localDecisions.filter { it.isSynced }.map { it.assetId }.toSet()
+                // EXCEPTION : Pour l'album virtuel des SKIP synchronisés, on veut justement les voir !
+                val isVirtualSkipped = album.id == Album.VIRTUAL_SKIPPED_ID
+                
+                val syncedIds = if (isVirtualSkipped) {
+                    emptySet()
+                } else {
+                    localDecisions.filter { it.isSynced }.map { it.assetId }.toSet()
+                }
+                
                 val workPileAssets = assets.filter { !syncedIds.contains(it.id) }
+
+                // Dans le cas de l'album virtuel, on veut aussi voir les décisions actuelles (qui sont SKIP et synchronisées)
+                // pour que l'utilisateur sache ce qu'il a déjà fait (même si au début ils sont tous SKIP)
+                if (isVirtualSkipped) {
+                    localDecisions.forEach { entity ->
+                        if (entity.decision == SwipeDecision.SKIP.name && entity.isSynced) {
+                            decisionMap[entity.assetId] = SwipeDecision.SKIP
+                            entity.fileSize?.let { sizeMap[entity.assetId] = it }
+                        }
+                    }
+                }
 
                 // NETTOYAGE : Si on a des décisions locales pour des assets qui n'existent plus
                 // dans cet album sur le serveur, on les supprime.
@@ -183,8 +202,12 @@ class SwipeViewModel(
                 }
 
                 // On cherche le premier index non traité dans la pile filtrée
-                val firstUnprocessedIndex = workPileAssets.indexOfFirst { !decisionMap.containsKey(it.id) }
-                    .let { if (it == -1) workPileAssets.size else it }
+                val firstUnprocessedIndex = if (isVirtualSkipped && workPileAssets.isNotEmpty()) {
+                    0
+                } else {
+                    workPileAssets.indexOfFirst { !decisionMap.containsKey(it.id) }
+                        .let { if (it == -1) workPileAssets.size else it }
+                }
 
                 _uiState.value = _uiState.value.copy(
                     assets = workPileAssets,

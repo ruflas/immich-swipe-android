@@ -94,7 +94,7 @@ class MainActivity : ComponentActivity() {
                                 val api = SessionManager.api
                                 if (api != null) {
                                     val albumRepository = remember(api) { AlbumRepository(api) }
-                                    val assetRepository = remember(api) { AssetRepository(api) }
+                                    val assetRepository = remember(api) { AssetRepository(api, database.swipeDecisionDao()) }
 
                                     HomeScreen(
                                         viewModel = viewModel(

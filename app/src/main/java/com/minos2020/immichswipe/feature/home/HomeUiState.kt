@@ -34,16 +34,32 @@ data class HomeUiState(
     val albumUnsyncedChanges: Map<String, Int> = emptyMap(),
     val isGridView: Boolean = false, // Toggle entre liste et grille
     val searchQuery: String = "", // Texte de recherche pour filtrer les albums
-    val connectionStatus: ConnectionStatus = ConnectionStatus()
+    val connectionStatus: ConnectionStatus = ConnectionStatus(),
+    val syncedSkipCount: Int = 0 // Nombre de SKIP synchronisés pour l'album virtuel
 ) {
     /**
      * Retourne la liste des albums filtrée par le texte de recherche.
      */
     val filteredAlbums: List<Album>
-        get() = if (searchQuery.isBlank()) {
-            albums
-        } else {
-            albums.filter { it.albumName.contains(searchQuery, ignoreCase = true) }
+        get() {
+            val baseList = if (syncedSkipCount > 0) {
+                val virtualAlbum = Album(
+                    id = Album.VIRTUAL_SKIPPED_ID,
+                    albumName = "", // Will be handled by the UI
+                    description = null,
+                    assetCount = syncedSkipCount,
+                    albumThumbnailAssetId = null
+                )
+                listOf(virtualAlbum) + albums
+            } else {
+                albums
+            }
+
+            return if (searchQuery.isBlank()) {
+                baseList
+            } else {
+                baseList.filter { it.albumName.contains(searchQuery, ignoreCase = true) }
+            }
         }
 
     /**
@@ -53,6 +69,8 @@ data class HomeUiState(
         get() {
             val filtered = filteredAlbums
             return filtered.groupBy { album ->
+                if (album.id == Album.VIRTUAL_SKIPPED_ID) return@groupBy AlbumStatus.VIRTUAL
+                
                 val treated = albumTreatedCounts[album.id] ?: 0
                 when {
                     treated == 0 -> AlbumStatus.NOT_STARTED
@@ -69,5 +87,6 @@ data class HomeUiState(
 enum class AlbumStatus(val label: String) {
     IN_PROGRESS("En cours"),
     NOT_STARTED("Pas commencé"),
-    COMPLETED("Terminés")
+    COMPLETED("Terminés"),
+    VIRTUAL("Collections")
 }

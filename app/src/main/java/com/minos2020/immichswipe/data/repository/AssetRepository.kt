@@ -4,18 +4,44 @@ import com.minos2020.immichswipe.data.api.DeleteAssetsRequest
 import com.minos2020.immichswipe.data.api.ImmichApi
 import com.minos2020.immichswipe.data.api.SearchAssetsRequest
 import com.minos2020.immichswipe.data.api.UpdateAssetsRequest
+import com.minos2020.immichswipe.data.local.dao.SwipeDecisionDao
+import com.minos2020.immichswipe.domain.model.Album
 import com.minos2020.immichswipe.domain.model.Asset
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 
 /**
  * Repository gérant les photos et vidéos (Assets).
  */
 class AssetRepository(
-    private val api: ImmichApi
+    private val api: ImmichApi,
+    private val swipeDecisionDao: SwipeDecisionDao? = null
 ) {
     /**
      * Récupère toutes les photos d'un album.
      */
     suspend fun getAssetsByAlbum(albumId: String): List<Asset> {
+        if (albumId == Album.VIRTUAL_SKIPPED_ID && swipeDecisionDao != null) {
+            // Album virtuel : On récupère les IDs depuis la base locale
+            val skippedDecisions = swipeDecisionDao.getSyncedSkipDecisions().first()
+            val assetIds = skippedDecisions.map { it.assetId }
+            
+            // On récupère les détails pour chaque asset en parallèle
+            return coroutineScope {
+                assetIds.map { id ->
+                    async {
+                        try {
+                            api.getAssetDetail(id)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    }
+                }.awaitAll().filterNotNull()
+            }
+        }
+
         val request = SearchAssetsRequest(albumIds = listOf(albumId))
         return api.searchAssets(request).assets.items
     }

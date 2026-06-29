@@ -72,10 +72,23 @@ interface SwipeDecisionDao {
     suspend fun markAsSynced(assetIds: List<String>)
 
     /**
-     * Supprime les décisions 'SKIP' plus vieilles qu'un certain timestamp.
+     * Supprime les décisions 'SKIP' NON SYNCHRONISÉES plus vieilles qu'un certain timestamp.
+     * Les SKIP synchronisés restent en base pour permettre le review dans l'album virtuel.
      */
-    @Query("DELETE FROM swipe_decisions WHERE decision = 'SKIP' AND createdAt < :threshold")
+    @Query("DELETE FROM swipe_decisions WHERE decision = 'SKIP' AND isSynced = 0 AND createdAt < :threshold")
     suspend fun deleteExpiredSkips(threshold: Long)
+
+    /**
+     * Récupère toutes les décisions 'SKIP' déjà synchronisées.
+     */
+    @Query("SELECT * FROM swipe_decisions WHERE decision = 'SKIP' AND isSynced = 1")
+    fun getSyncedSkipDecisions(): Flow<List<SwipeDecisionEntity>>
+
+    /**
+     * Compte le nombre de décisions 'SKIP' synchronisées.
+     */
+    @Query("SELECT COUNT(*) FROM swipe_decisions WHERE decision = 'SKIP' AND isSynced = 1")
+    fun getSyncedSkipCount(): Flow<Int>
 
     /**
      * Récupère les statistiques de décisions pour tous les albums sous forme de Flow.

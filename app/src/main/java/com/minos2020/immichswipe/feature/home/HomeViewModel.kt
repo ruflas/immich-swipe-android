@@ -79,6 +79,13 @@ class HomeViewModel(
                 }
             }
         }
+
+        // Observe le nombre de SKIP synchronisés pour l'album virtuel
+        viewModelScope.launch {
+            swipeDecisionRepository.getSyncedSkipCount().collect { count ->
+                _uiState.update { it.copy(syncedSkipCount = count) }
+            }
+        }
     }
 
     fun loadUser() {

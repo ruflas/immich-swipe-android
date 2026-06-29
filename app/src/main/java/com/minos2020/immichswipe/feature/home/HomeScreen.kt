@@ -61,6 +61,7 @@ import com.minos2020.immichswipe.feature.settings.SettingsScreen
 import com.minos2020.immichswipe.feature.settings.SettingsViewModel
 import com.minos2020.immichswipe.feature.settings.SettingsViewModelFactory
 import com.minos2020.immichswipe.feature.swipe.SwipeScreen
+import com.minos2020.immichswipe.ui.theme.VirtualGold
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -581,7 +582,7 @@ fun AlbumList(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // On définit l'ordre d'affichage des catégories
-            val statusOrder = listOf(AlbumStatus.IN_PROGRESS, AlbumStatus.NOT_STARTED, AlbumStatus.COMPLETED)
+            val statusOrder = listOf(AlbumStatus.IN_PROGRESS, AlbumStatus.NOT_STARTED, AlbumStatus.COMPLETED, AlbumStatus.VIRTUAL)
 
             statusOrder.forEach { status ->
                 val albumsInStatus = groupedAlbums[status]
@@ -591,12 +592,16 @@ fun AlbumList(
                             AlbumStatus.IN_PROGRESS -> stringResource(R.string.home_status_in_progress)
                             AlbumStatus.NOT_STARTED -> stringResource(R.string.home_status_not_started)
                             AlbumStatus.COMPLETED -> stringResource(R.string.home_status_completed)
+                            AlbumStatus.VIRTUAL -> stringResource(R.string.home_status_virtual)
                         }
                         Text(
                             text = statusLabel,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = if (status == AlbumStatus.VIRTUAL)
+                                VirtualGold // doré
+                            else
+                                MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
                     }
@@ -636,7 +641,7 @@ fun AlbumGrid(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            val statusOrder = listOf(AlbumStatus.IN_PROGRESS, AlbumStatus.NOT_STARTED, AlbumStatus.COMPLETED)
+            val statusOrder = listOf(AlbumStatus.IN_PROGRESS, AlbumStatus.NOT_STARTED, AlbumStatus.COMPLETED, AlbumStatus.VIRTUAL)
 
             statusOrder.forEach { status ->
                 val albumsInStatus = groupedAlbums[status]
@@ -646,12 +651,16 @@ fun AlbumGrid(
                             AlbumStatus.IN_PROGRESS -> stringResource(R.string.home_status_in_progress)
                             AlbumStatus.NOT_STARTED -> stringResource(R.string.home_status_not_started)
                             AlbumStatus.COMPLETED -> stringResource(R.string.home_status_completed)
+                            AlbumStatus.VIRTUAL -> stringResource(R.string.home_status_virtual)
                         }
                         Text(
                             text = statusLabel,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = if (status == AlbumStatus.VIRTUAL)
+                                VirtualGold // doré
+                            else
+                                MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                         )
                     }
@@ -711,11 +720,21 @@ fun AlbumGridItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: 
                         .then(if (isCompleted) Modifier.alpha(0.8f) else Modifier)
                 )
             } else {
+                val icon = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
+                    Icons.Default.FastForward
+                } else {
+                    Icons.Default.PhotoLibrary
+                }
                 Box(
                     modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primaryContainer),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.PhotoLibrary, null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = if (album.id == Album.VIRTUAL_SKIPPED_ID) Modifier.size(32.dp) else Modifier
+                    )
                 }
             }
 
@@ -764,8 +783,13 @@ fun AlbumGridItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: 
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                 }
+                val albumName = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
+                    stringResource(R.string.home_virtual_skipped_synced)
+                } else {
+                    album.albumName
+                }
                 Text(
-                    text = album.albumName,
+                    text = albumName,
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -843,8 +867,13 @@ fun AlbumItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -
                                 error = rememberVectorPainter(Icons.Default.PhotoLibrary)
                             )
                         } else {
+                            val icon = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
+                                Icons.Default.FastForward
+                            } else {
+                                Icons.Default.PhotoLibrary
+                            }
                             Icon(
-                                imageVector = Icons.Default.PhotoLibrary,
+                                imageVector = icon,
                                 contentDescription = null,
                                 modifier = Modifier.padding(16.dp),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
@@ -878,7 +907,12 @@ fun AlbumItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = album.albumName, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+                        val albumName = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
+                            stringResource(R.string.home_virtual_skipped_synced)
+                        } else {
+                            album.albumName
+                        }
+                        Text(text = albumName, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
                         if (isCompleted) {
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.home_album_completed), fontSize = 10.sp, color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
@@ -892,8 +926,13 @@ fun AlbumItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    if (!album.description.isNullOrBlank()) {
-                        Text(text = album.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.outline, maxLines = 2)
+                    val description = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
+                        stringResource(R.string.home_virtual_skipped_synced_desc)
+                    } else {
+                        album.description
+                    }
+                    if (!description.isNullOrBlank()) {
+                        Text(text = description, fontSize = 13.sp, color = MaterialTheme.colorScheme.outline, maxLines = 2)
                     }
                     Text(
                         text = stringResource(R.string.home_sorted_count, treatedCount, album.assetCount),

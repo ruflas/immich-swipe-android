@@ -23,6 +23,7 @@
     <string name="home_status_in_progress">In progress</string>
     <string name="home_status_not_started">Not started</string>
     <string name="home_status_completed">Completed</string>
+    <string name="home_status_virtual">Special collections</string>
     <string name="home_album_completed">Completed</string>
     <string name="home_unsynced_changes">Contains %1$d unsynced changes</string>
     <string name="home_sorted_count">%1$d / %2$d sorted</string>
@@ -31,6 +32,7 @@
     <string name="home_photos_to_discover">%1$d photos to discover</string>
     <string name="home_new_badge">NEW</string>
     <string name="home_unsynced_badge">NOT SYNCED</string>
+    <string name="home_virtual_skipped_synced_desc">Collection of all assets previously skipped and synced</string>
     <string name="home_user_fallback">User</string>
 
     <!-- Profile Popup & Diag -->
@@ -68,7 +70,7 @@
     <string name="settings_layout_grid">Grid</string>
     <string name="settings_section_tri">Sorting</string>
     <string name="settings_skip_lifespan_label">SKIP lifespan</string>
-    <string name="settings_skip_lifespan_desc">After this delay, \'skipped\' photos become \'unsorted\' again for re-evaluation.</string>
+    <string name="settings_skip_lifespan_desc">After this delay, \'skipped\' photos become \'unsorted\' again and reappear in albums for re-evaluation. You can always review them via the SKIPs collection.</string>
     <string name="settings_skip_never">SKIP never return</string>
     <string name="settings_skip_hint">More precision for short durations</string>
     <string name="settings_skip_warning_title">Modify SKIP duration</string>
@@ -141,4 +143,5 @@
     <string name="common_retry">Retry</string>
     <string name="common_close">Close</string>
     <string name="common_loading">Loading…</string>
+    <string name="home_virtual_skipped_synced">SKIPs</string>
 </resources>

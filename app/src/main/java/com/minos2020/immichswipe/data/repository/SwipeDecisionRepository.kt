@@ -80,6 +80,20 @@ class SwipeDecisionRepository(
     }
 
     /**
+     * Récupère toutes les décisions 'SKIP' synchronisées.
+     */
+    fun getSyncedSkipDecisions(): Flow<List<SwipeDecisionEntity>> {
+        return swipeDecisionDao.getSyncedSkipDecisions()
+    }
+
+    /**
+     * Récupère le nombre de 'SKIP' synchronisés.
+     */
+    fun getSyncedSkipCount(): Flow<Int> {
+        return swipeDecisionDao.getSyncedSkipCount()
+    }
+
+    /**
      * Supprime les SKIP expirés de la base de données.
      */
     suspend fun cleanExpiredSkips(lifespanDays: Long) {

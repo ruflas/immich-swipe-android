@@ -23,14 +23,16 @@
     <string name="home_status_in_progress">En cours</string>
     <string name="home_status_not_started">Pas commencé</string>
     <string name="home_status_completed">Terminés</string>
+    <string name="home_status_virtual">Collections spéciales</string>
     <string name="home_album_completed">Terminé</string>
     <string name="home_unsynced_changes">Contient %1$d changements non synchronisés</string>
     <string name="home_sorted_count">%1$d / %2$d triés</string>
     <string name="home_select_album">Sélectionnez un album pour commencer !</string>
     <string name="home_session_title">Session de tri : %1$s</string>
     <string name="home_photos_to_discover">%1$d photos à découvrir</string>
-    <string name="home_new_badge">NEUF</string>
+    <string name="home_new_badge">NOUVEAU</string>
     <string name="home_unsynced_badge">NON SYNCHRONISÉ</string>
+    <string name="home_virtual_skipped_synced">SKIPs</string>
     <string name="home_user_fallback">Utilisateur</string>
 
     <!-- Popup Profil & Diagnostic -->
@@ -68,7 +70,7 @@
     <string name="settings_layout_grid">Grille</string>
     <string name="settings_section_tri">Tri</string>
     <string name="settings_skip_lifespan_label">Durée de vie des SKIP</string>
-    <string name="settings_skip_lifespan_desc">Au bout de ce délai, les photos \'passées\' redeviennent \'non triées\' pour vous permettre de les réévaluer.</string>
+    <string name="settings_skip_lifespan_desc">Au bout de ce délai, les photos marquées SKIP redeviennent \'non triées\' et réaparaissent dans l\'album pour vous permettre de les réévaluer. Vous pouvez toujours revoir les SKIP dans la collection SKIPs.</string>
     <string name="settings_skip_never">Les SKIP ne reviennent jamais</string>
     <string name="settings_skip_hint">Plus de précision sur les courtes durées</string>
     <string name="settings_skip_warning_title">Modifier la durée des SKIP</string>
@@ -141,4 +143,5 @@
     <string name="common_retry">Réessayer</string>
     <string name="common_close">Fermer</string>
     <string name="common_loading">Chargement…</string>
+    <string name="home_virtual_skipped_synced_desc">Collection de tous les assets marqués SKIP et synchronisés</string>
 </resources>
