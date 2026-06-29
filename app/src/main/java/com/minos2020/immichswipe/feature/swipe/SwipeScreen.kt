@@ -113,6 +113,13 @@ fun SwipeScreen(
         key = album.id,
         factory = SwipeViewModelFactory(assetRepository, sessionRepository, swipeDecisionRepository, album)
     )
+    
+    // Rafraîchir les données chaque fois que l'écran devient visible
+    // Afin de refléter d'éventuels changements survenus sur l'album
+    LaunchedEffect(album.id) {
+        viewModel.retryLoading()
+    }
+
     val uiState by viewModel.uiState.collectAsState()
     
     // On observe la santé globale de la connexion
