@@ -80,6 +80,13 @@ fun HomeScreen(
         viewModel.loadUser()
     }
 
+    // Mise à jour des noms localisés pour les albums virtuels
+    val virtualSkippedName = stringResource(R.string.home_virtual_skipped_synced)
+    val virtualSkippedDesc = stringResource(R.string.home_virtual_skipped_synced_desc)
+    LaunchedEffect(virtualSkippedName, virtualSkippedDesc) {
+        viewModel.updateVirtualNames(Album.VIRTUAL_SKIPPED_ID, virtualSkippedName, virtualSkippedDesc)
+    }
+
     // Gestion du retour physique/gestuel du téléphone
     BackHandler(enabled = uiState.currentTab != HomeTab.HOME) {
         viewModel.goBack()
@@ -783,13 +790,8 @@ fun AlbumGridItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: 
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                 }
-                val albumName = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
-                    stringResource(R.string.home_virtual_skipped_synced)
-                } else {
-                    album.albumName
-                }
                 Text(
-                    text = albumName,
+                    text = album.albumName,
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
@@ -907,12 +909,7 @@ fun AlbumItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -
 
                 Column(modifier = Modifier.weight(1f)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val albumName = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
-                            stringResource(R.string.home_virtual_skipped_synced)
-                        } else {
-                            album.albumName
-                        }
-                        Text(text = albumName, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
+                        Text(text = album.albumName, fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.weight(1f, fill = false))
                         if (isCompleted) {
                             Spacer(Modifier.width(8.dp))
                             Text(stringResource(R.string.home_album_completed), fontSize = 10.sp, color = Color(0xFF388E3C), fontWeight = FontWeight.Bold)
@@ -926,13 +923,8 @@ fun AlbumItem(album: Album, treatedCount: Int, unsyncedCount: Int, onClick: () -
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    val description = if (album.id == Album.VIRTUAL_SKIPPED_ID) {
-                        stringResource(R.string.home_virtual_skipped_synced_desc)
-                    } else {
-                        album.description
-                    }
-                    if (!description.isNullOrBlank()) {
-                        Text(text = description, fontSize = 13.sp, color = MaterialTheme.colorScheme.outline, maxLines = 2)
+                    if (!album.description.isNullOrBlank()) {
+                        Text(text = album.description, fontSize = 13.sp, color = MaterialTheme.colorScheme.outline, maxLines = 2)
                     }
                     Text(
                         text = stringResource(R.string.home_sorted_count, treatedCount, album.assetCount),

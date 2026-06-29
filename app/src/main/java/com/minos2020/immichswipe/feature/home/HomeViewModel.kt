@@ -196,6 +196,19 @@ class HomeViewModel(
     }
 
     fun onSearchQueryChanged(query: String) = _uiState.update { it.copy(searchQuery = query) }
+    
+    fun updateVirtualNames(id: String, name: String, description: String? = null) {
+        _uiState.update { 
+            val newNames = it.virtualNames.toMutableMap()
+            newNames[id] = name
+            val newDescs = it.virtualDescriptions.toMutableMap()
+            if (description != null) {
+                newDescs[id] = description
+            }
+            it.copy(virtualNames = newNames, virtualDescriptions = newDescs)
+        }
+    }
+
     fun toggleLayoutMode() = _uiState.update { it.copy(isGridView = !it.isGridView) }
     fun getSessionRepository() = sessionRepository
 }
