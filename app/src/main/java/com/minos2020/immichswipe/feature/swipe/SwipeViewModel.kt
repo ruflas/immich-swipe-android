@@ -500,12 +500,6 @@ class SwipeViewModel(
 
                 // 3. Mise à jour de la base de données locale
                 if (successfullyDisappeared.isNotEmpty()) {
-                    // Statistiques uniquement pour les vrais DELETE
-                    val successfulDeletions = toDelete.filter { successfullyDisappeared.contains(it) }
-                    if (successfulDeletions.isNotEmpty()) {
-                        val totalBytes = successfulDeletions.sumOf { assetSizes[it] ?: 0L }
-                        sessionRepository.addDeletedStats(totalBytes, successfulDeletions.size)
-                    }
                     // On retire de la base locale car ils ne sont plus dans l'album
                     swipeDecisionRepository.removeDecisionsFromAllAlbums(successfullyDisappeared, config.userId)
                 }
@@ -513,6 +507,17 @@ class SwipeViewModel(
                 if (successfulKeeps.isNotEmpty()) {
                     swipeDecisionRepository.markAsSynced(successfulKeeps, config.userId)
                 }
+
+                // 3.5 Enregistrement dans l'historique pour les statistiques
+                swipeDecisionRepository.saveSyncHistory(
+                    userId = config.userId,
+                    deletedCount = toDelete.filter { successfullyDisappeared.contains(it) }.size,
+                    bytesSaved = toDelete.filter { successfullyDisappeared.contains(it) }.sumOf { assetSizes[it] ?: 0L },
+                    keptCount = toKeep.size,
+                    archivedCount = toArchive.size,
+                    lockedCount = toLock.filter { successfullyDisappeared.contains(it) }.size,
+                    skippedCount = toSkip.size
+                )
 
                 AppLogger.i("Swipe", "Synchronisation réussie. ${successfullyDisappeared.size} supprimés/verrouillés, ${successfulKeeps.size} gardés localement.")
 

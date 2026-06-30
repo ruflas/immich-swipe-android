@@ -148,6 +148,17 @@
     <string name="common_loading">Chargement…</string>
     <string name="home_virtual_skipped_synced_desc">Collection de tous les assets marqués SKIP et synchronisés</string>
 
+    <!-- Statistiques -->
+    <string name="stats_popup_title">Statistiques d\'usage</string>
+    <string name="stats_section_global">Statistiques globales</string>
+    <string name="stats_section_weekly">Cette semaine</string>
+    <string name="stats_deleted_count">Supprimés</string>
+    <string name="stats_bytes_saved">Espace libéré</string>
+    <string name="stats_swiped_count">Photos triées</string>
+    <string name="stats_albums_completed">Albums finis</string>
+    <string name="stats_distribution_title">Répartition des choix</string>
+    <string name="stats_no_data">Aucune donnée de synchronisation disponible pour le moment.</string>
+
     <!-- Débogage -->
     <string name="settings_section_debug">Débogage</string>
     <string name="settings_view_logs_label">Voir les journaux locaux</string>

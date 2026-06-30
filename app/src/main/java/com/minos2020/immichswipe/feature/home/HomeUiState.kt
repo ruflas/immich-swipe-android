@@ -38,7 +38,9 @@ data class HomeUiState(
     val syncedSkipCount: Int = 0, // Nombre de SKIP synchronisés pour l'album virtuel
     val includeArchived: Boolean = false, // Inclure ou non les archives externes
     val virtualNames: Map<String, String> = emptyMap(), // Noms localisés des albums virtuels
-    val virtualDescriptions: Map<String, String> = emptyMap() // Descriptions localisées
+    val virtualDescriptions: Map<String, String> = emptyMap(), // Descriptions localisées
+    val showStatsPopup: Boolean = false, // Visibilité de la popup stats
+    val stats: StatsUiData = StatsUiData() // Données des stats
 ) {
     /**
      * Retourne la liste des albums filtrée par le texte de recherche.
@@ -87,6 +89,36 @@ data class HomeUiState(
                 }
             }
         }
+}
+
+/**
+ * Données calculées pour l'affichage des statistiques.
+ */
+data class StatsUiData(
+    val totalDeleted: Int = 0,
+    val totalBytesSaved: Long = 0,
+    val totalKept: Int = 0,
+    val totalArchived: Int = 0,
+    val totalLocked: Int = 0,
+    val totalSkipped: Int = 0,
+    val totalAlbums: Int = 0,
+    val completedAlbums: Int = 0,
+    val weeklyDeleted: Int = 0,
+    val weeklyBytesSaved: Long = 0
+) {
+    val totalSwiped: Int get() = totalDeleted + totalKept + totalArchived + totalLocked + totalSkipped
+    
+    val distribution: Map<String, Float> get() {
+        val total = totalSwiped.toFloat()
+        if (total == 0f) return emptyMap()
+        return mapOf(
+            "KEEP" to totalKept / total,
+            "DELETE" to totalDeleted / total,
+            "ARCHIVE" to totalArchived / total,
+            "LOCK" to totalLocked / total,
+            "SKIP" to totalSkipped / total
+        )
+    }
 }
 
 /**

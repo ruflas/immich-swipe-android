@@ -28,8 +28,6 @@ class SessionDataStore(private val context: Context) {
         private val KEY_SHOW_LOCK = androidx.datastore.preferences.core.booleanPreferencesKey("show_lock")
         private val KEY_AUTO_NEXT_ON_FAV = androidx.datastore.preferences.core.booleanPreferencesKey("auto_next_on_fav")
         private val KEY_INCLUDE_ARCHIVED = androidx.datastore.preferences.core.booleanPreferencesKey("include_archived")
-        private val KEY_TOTAL_BYTES_SAVED = androidx.datastore.preferences.core.longPreferencesKey("total_bytes_saved")
-        private val KEY_TOTAL_ASSETS_DELETED = androidx.datastore.preferences.core.intPreferencesKey("total_assets_deleted")
     }
 
     suspend fun saveSession(baseUrl: String, apiKey: String, userId: String) {
@@ -112,18 +110,6 @@ class SessionDataStore(private val context: Context) {
 
     fun isIncludeArchived(): Flow<Boolean> = context.dataStore.data.map { it[KEY_INCLUDE_ARCHIVED] ?: true }
     suspend fun saveIncludeArchived(include: Boolean) { context.dataStore.edit { it[KEY_INCLUDE_ARCHIVED] = include } }
-
-    fun getTotalBytesSaved(): Flow<Long> = context.dataStore.data.map { it[KEY_TOTAL_BYTES_SAVED] ?: 0L }
-    fun getTotalAssetsDeleted(): Flow<Int> = context.dataStore.data.map { it[KEY_TOTAL_ASSETS_DELETED] ?: 0 }
-
-    suspend fun addDeletedStats(bytes: Long, count: Int) {
-        context.dataStore.edit { prefs ->
-            val currentBytes = prefs[KEY_TOTAL_BYTES_SAVED] ?: 0L
-            val currentCount = prefs[KEY_TOTAL_ASSETS_DELETED] ?: 0
-            prefs[KEY_TOTAL_BYTES_SAVED] = currentBytes + bytes
-            prefs[KEY_TOTAL_ASSETS_DELETED] = currentCount + count
-        }
-    }
 
     suspend fun clearSession() {
         context.dataStore.edit { it.clear() }

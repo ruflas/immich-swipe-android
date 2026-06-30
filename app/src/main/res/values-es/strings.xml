@@ -132,6 +132,17 @@
     <string name="common_close">Cerrar</string>
     <string name="common_loading">Cargando…</string>
 
+    <!-- Estadísticas -->
+    <string name="stats_popup_title">Estadísticas de uso</string>
+    <string name="stats_section_global">Estadísticas globales</string>
+    <string name="stats_section_weekly">Esta semana</string>
+    <string name="stats_deleted_count">Eliminados</string>
+    <string name="stats_bytes_saved">Espacio liberado</string>
+    <string name="stats_swiped_count">Fotos ordenadas</string>
+    <string name="stats_albums_completed">Álbumes terminados</string>
+    <string name="stats_distribution_title">Desglose de decisiones</string>
+    <string name="stats_no_data">Aún no hay datos de sincronización disponibles.</string>
+
     <!-- Depuración -->
     <string name="settings_section_debug">Depuración</string>
     <string name="settings_view_logs_label">Ver registros locales</string>

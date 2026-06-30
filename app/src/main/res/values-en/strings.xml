@@ -145,6 +145,17 @@
     <string name="common_loading">Loading…</string>
     <string name="home_virtual_skipped_synced">SKIPs</string>
 
+    <!-- Statistics -->
+    <string name="stats_popup_title">Usage Statistics</string>
+    <string name="stats_section_global">Global Statistics</string>
+    <string name="stats_section_weekly">This week</string>
+    <string name="stats_deleted_count">Deleted</string>
+    <string name="stats_bytes_saved">Space freed</string>
+    <string name="stats_swiped_count">Photos sorted</string>
+    <string name="stats_albums_completed">Albums finished</string>
+    <string name="stats_distribution_title">Decision breakdown</string>
+    <string name="stats_no_data">No synchronization data available yet.</string>
+
     <!-- Debugging -->
     <string name="settings_section_debug">Debugging</string>
     <string name="settings_view_logs_label">View local logs</string>

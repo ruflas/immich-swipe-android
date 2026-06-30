@@ -1,7 +1,5 @@
 package com.minos2020.immichswipe.feature.home
 
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.combine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minos2020.immichswipe.data.repository.UserRepository
@@ -9,11 +7,14 @@ import com.minos2020.immichswipe.data.repository.AlbumRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import com.minos2020.immichswipe.core.SessionManager
 import com.minos2020.immichswipe.core.AppLogger
-import kotlinx.coroutines.flow.update
 import com.minos2020.immichswipe.core.PlaybackBehavior
 import com.minos2020.immichswipe.core.AppTheme
 import com.minos2020.immichswipe.data.repository.SessionRepository
@@ -106,6 +107,54 @@ class HomeViewModel(
                     }.collect { adjustedCount ->
                         _uiState.update { it.copy(syncedSkipCount = adjustedCount) }
                     }
+                }
+            }
+        }
+
+        // Observe les statistiques globales (Historique + Albums)
+        viewModelScope.launch {
+            sessionRepository.sessionConfig.collect { config ->
+                if (config == null) return@collect
+                
+                combine(
+                    swipeDecisionRepository.getSyncHistory(config.userId),
+                    _uiState.map { it.albums },
+                    _uiState.map { it.albumTreatedCounts }
+                ) { history, albums, treatedCounts ->
+                    val now = System.currentTimeMillis()
+                    val oneWeekAgo = now - (7 * 24 * 60 * 60 * 1000L)
+                    
+                    val weeklyHistory = history.filter { it.timestamp >= oneWeekAgo }
+
+                    val totalDeleted = history.sumOf { it.deletedCount }
+                    val totalBytes = history.sumOf { it.bytesSaved }
+                    val totalKept = history.sumOf { it.keptCount }
+                    val totalArchived = history.sumOf { it.archivedCount }
+                    val totalLocked = history.sumOf { it.lockedCount }
+                    val totalSkipped = history.sumOf { it.skippedCount }
+                    
+                    val weeklyDeleted = weeklyHistory.sumOf { it.deletedCount }
+                    val weeklyBytes = weeklyHistory.sumOf { it.bytesSaved }
+
+                    val completedCount = albums.count { album ->
+                        val treated = treatedCounts[album.id] ?: 0
+                        treated >= album.assetCount && album.assetCount > 0
+                    }
+
+                    StatsUiData(
+                        totalDeleted = totalDeleted,
+                        totalBytesSaved = totalBytes,
+                        totalKept = totalKept,
+                        totalArchived = totalArchived,
+                        totalLocked = totalLocked,
+                        totalSkipped = totalSkipped,
+                        totalAlbums = albums.size,
+                        completedAlbums = completedCount,
+                        weeklyDeleted = weeklyDeleted,
+                        weeklyBytesSaved = weeklyBytes
+                    )
+                }.collect { newStats ->
+                    _uiState.update { it.copy(stats = newStats) }
                 }
             }
         }
@@ -209,6 +258,10 @@ class HomeViewModel(
 
     fun toggleProfilePopup(visible: Boolean) {
         _uiState.update { it.copy(showProfilePopup = visible) }
+    }
+
+    fun toggleStatsPopup(visible: Boolean) {
+        _uiState.update { it.copy(showStatsPopup = visible) }
     }
 
     fun setPlaybackBehavior(behavior: PlaybackBehavior) = viewModelScope.launch {

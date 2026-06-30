@@ -108,4 +108,33 @@ class SwipeDecisionRepository(
         val threshold = System.currentTimeMillis() - (lifespanDays * 24 * 60 * 60 * 1000L)
         swipeDecisionDao.deleteExpiredSkips(threshold)
     }
+
+    /**
+     * Enregistre un historique de synchronisation.
+     */
+    suspend fun saveSyncHistory(
+        userId: String,
+        deletedCount: Int,
+        bytesSaved: Long,
+        keptCount: Int,
+        archivedCount: Int,
+        lockedCount: Int,
+        skippedCount: Int
+    ) {
+        val history = com.minos2020.immichswipe.data.local.entity.SyncHistoryEntity(
+            userId = userId,
+            deletedCount = deletedCount,
+            bytesSaved = bytesSaved,
+            keptCount = keptCount,
+            archivedCount = archivedCount,
+            lockedCount = lockedCount,
+            skippedCount = skippedCount
+        )
+        swipeDecisionDao.insertSyncHistory(history)
+    }
+
+    /**
+     * Récupère l'historique complet pour un utilisateur.
+     */
+    fun getSyncHistory(userId: String) = swipeDecisionDao.getSyncHistory(userId)
 }

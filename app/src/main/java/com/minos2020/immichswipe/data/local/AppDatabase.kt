@@ -9,14 +9,15 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.data.local.dao.SwipeDecisionDao
 import com.minos2020.immichswipe.data.local.entity.SwipeDecisionEntity
+import com.minos2020.immichswipe.data.local.entity.SyncHistoryEntity
 
 /**
  * La base de données principale de l'application.
  * Elle centralise les accès via les DAOs.
  */
 @Database(
-    entities = [SwipeDecisionEntity::class],
-    version = 4,
+    entities = [SwipeDecisionEntity::class, SyncHistoryEntity::class],
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -70,6 +71,29 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Migration ROOM de la version 4 vers la version 5.
+         * - Ajoute la table 'sync_history' pour les statistiques multi-compte.
+         */
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                AppLogger.i("Database", "Exécution Migration 4 -> 5 (Ajout sync_history)")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS sync_history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        userId TEXT NOT NULL,
+                        timestamp INTEGER NOT NULL,
+                        deletedCount INTEGER NOT NULL,
+                        bytesSaved INTEGER NOT NULL,
+                        keptCount INTEGER NOT NULL,
+                        archivedCount INTEGER NOT NULL,
+                        lockedCount INTEGER NOT NULL,
+                        skippedCount INTEGER NOT NULL
+                    )
+                """.trimIndent())
+            }
+        }
+
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -81,7 +105,7 @@ abstract class AppDatabase : RoomDatabase() {
                                 "immich_swipe_database"
                             )
                     // On enregistre nos scripts de migration
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .fallbackToDestructiveMigration(false)
                 .build()
                 INSTANCE = instance

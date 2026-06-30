@@ -96,6 +96,18 @@ interface SwipeDecisionDao {
     suspend fun migrateLegacyData(userId: String)
 
     /**
+     * Insère une entrée dans l'historique de synchronisation.
+     */
+    @Insert
+    suspend fun insertSyncHistory(history: com.minos2020.immichswipe.data.local.entity.SyncHistoryEntity)
+
+    /**
+     * Récupère tout l'historique de synchronisation pour un utilisateur.
+     */
+    @Query("SELECT * FROM sync_history WHERE userId = :userId ORDER BY timestamp DESC")
+    fun getSyncHistory(userId: String): Flow<List<com.minos2020.immichswipe.data.local.entity.SyncHistoryEntity>>
+
+    /**
      * Récupère les statistiques de décisions pour tous les albums d'un utilisateur sous forme de Flow.
      */
     @Query("""
