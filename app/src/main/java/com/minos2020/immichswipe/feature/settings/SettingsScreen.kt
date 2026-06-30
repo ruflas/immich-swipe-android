@@ -25,7 +25,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.minos2020.immichswipe.R
@@ -39,6 +42,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Column(
         modifier = modifier
@@ -47,6 +52,7 @@ fun SettingsScreen(
             .padding(16.dp)
             .verticalScroll(rememberScrollState())
     ) {
+            // ... (rest of sections)
             // SECTION APPARENCE
             SettingsSection(title = stringResource(R.string.settings_section_appearance), icon = Icons.Default.Palette) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -310,6 +316,20 @@ fun SettingsScreen(
 
             Spacer(Modifier.height(16.dp))
 
+            // SECTION DEBUG
+            SettingsSection(title = stringResource(R.string.settings_section_debug), icon = Icons.Default.BugReport) {
+                Column {
+                    SettingsClickableItem(
+                        title = stringResource(R.string.settings_view_logs_label),
+                        subtitle = stringResource(R.string.settings_view_logs_desc),
+                        icon = Icons.Default.History,
+                        onClick = { viewModel.setShowLogs(true) }
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
             // SECTION COMPTE
             SettingsSection(title = stringResource(R.string.settings_section_account), icon = Icons.Default.Person) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -362,6 +382,93 @@ fun SettingsScreen(
             dismissButton = {
                 TextButton(onClick = { viewModel.dismissSkipLifespanWarning() }) {
                     Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
+
+    // Dialogue des LOGS
+    if (uiState.showLogsDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.setShowLogs(false) },
+            title = { Text(stringResource(R.string.settings_logs_dialog_title)) },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            text = {
+                val rawLogs = remember { viewModel.getLogs() }
+                val errorColor = MaterialTheme.colorScheme.error
+                val warningColor = Color(0xFFFFA500) // Orange
+
+                val annotatedLogs = remember(rawLogs, errorColor) {
+                    buildAnnotatedString {
+                        if (rawLogs.isNotEmpty()) {
+                            rawLogs.lineSequence().forEach { line ->
+                                val color = when {
+                                    line.contains(" E/") -> errorColor
+                                    line.contains(" W/") -> warningColor
+                                    else -> Color.Unspecified
+                                }
+                                withStyle(style = SpanStyle(color = color)) {
+                                    append(line + "\n")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                BoxWithConstraints(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
+                ) {
+                    val scroll = rememberScrollState()
+                    Text(
+                        text = if (rawLogs.isEmpty()) androidx.compose.ui.text.AnnotatedString(stringResource(R.string.settings_logs_empty)) else annotatedLogs,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        modifier = Modifier.verticalScroll(scroll)
+                    )
+
+                    // Barre de défilement (Scrollbar)
+                    if (rawLogs.isNotEmpty() && scroll.maxValue > 0) {
+                        val indicatorHeightFraction = 0.1f
+                        val scrollFraction = scroll.value.toFloat() / scroll.maxValue
+                        val availableHeight = maxHeight
+                        
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .fillMaxHeight()
+                                .width(4.dp)
+                                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight(indicatorHeightFraction)
+                                    .fillMaxWidth()
+                                    .offset(y = availableHeight * (scrollFraction * (1f - indicatorHeightFraction)))
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(2.dp))
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { 
+                    val logs = viewModel.getLogs()
+                    clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(logs))
+                    android.widget.Toast.makeText(context, context.getString(R.string.settings_logs_copied_toast), android.widget.Toast.LENGTH_SHORT).show()
+                }) {
+                    Text(stringResource(R.string.settings_logs_copy))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    viewModel.clearLogs()
+                    viewModel.setShowLogs(false)
+                }) {
+                    Text(stringResource(R.string.settings_logs_clear), color = MaterialTheme.colorScheme.error)
                 }
             }
         )
@@ -437,6 +544,30 @@ fun SettingsSection(title: String, icon: androidx.compose.ui.graphics.vector.Ima
         ) {
             content()
         }
+    }
+}
+
+@Composable
+fun SettingsClickableItem(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
+        Spacer(Modifier.width(16.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge)
+            Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+        }
+        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 

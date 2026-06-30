@@ -3,6 +3,7 @@ package com.minos2020.immichswipe.feature.swipe
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minos2020.immichswipe.data.repository.AssetRepository
+import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.data.repository.SessionRepository
 import com.minos2020.immichswipe.data.repository.SwipeDecisionRepository
 import com.minos2020.immichswipe.domain.model.Album
@@ -127,6 +128,7 @@ class SwipeViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             try {
+                AppLogger.d("Swipe", "Chargement de l'album ${album.albumName} (ID: ${album.id})")
                 val config = sessionRepository.sessionConfig.first() ?: return@launch
                 val includeArchived = sessionRepository.includeArchived.first()
 
@@ -135,6 +137,7 @@ class SwipeViewModel(
                 
                 // On charge les décisions locales déjà prises pour cet album
                 val localDecisions = swipeDecisionRepository.getDecisionsForAlbum(album.id, config.userId).first()
+                AppLogger.d("Swipe", "${assets.size} assets trouvés, ${localDecisions.size} décisions locales")
                 
                 // Durée d'expiration en millisecondes
                 val lifespanDays = sessionRepository.skipLifespanDays.first()
@@ -182,6 +185,7 @@ class SwipeViewModel(
                 }
                 
                 val workPileAssets = assets.filter { !syncedIds.contains(it.id) }
+                AppLogger.i("Swipe", "Pile de travail: ${workPileAssets.size} assets restants à trier")
 
                 // Dans le cas de l'album virtuel, on veut aussi voir les décisions actuelles (qui sont SKIP et synchronisées)
                 // pour que l'utilisateur sache ce qu'il a déjà fait (même si au début ils sont tous SKIP)
@@ -202,6 +206,7 @@ class SwipeViewModel(
                 val invalidAssetIds = localDecisions.map { it.assetId }.filter { !serverAssetIds.contains(it) }
                 
                 if (invalidAssetIds.isNotEmpty()) {
+                    AppLogger.w("Swipe", "Nettoyage de ${invalidAssetIds.size} décisions orphelines")
                     // Pour le nettoyage au chargement, on est prudent : on ne nettoie que pour CET album
                     // car l'absence dans CET album ne veut pas dire que l'asset est mort sur Immich
                     // (il a pu être simplement retiré de l'album).
@@ -233,6 +238,7 @@ class SwipeViewModel(
                     loadAssetDetail(workPileAssets[firstUnprocessedIndex].id, firstUnprocessedIndex)
                 }
             } catch (e: Exception) {
+                AppLogger.e("Swipe", "Erreur lors du chargement de l'album", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
                     error = e.message ?: "Erreur lors du chargement des photos"
@@ -470,6 +476,7 @@ class SwipeViewModel(
         val toUnfavorite = currentState.localFavorites.filter { !it.value }.keys.toList()
 
         viewModelScope.launch {
+            AppLogger.i("Swipe", "Application des changements : DELETE(${toDelete.size}), ARCHIVE(${toArchive.size}), LOCK(${toLock.size}), KEEP(${toKeep.size}), SKIP(${toSkip.size})")
             _uiState.value = _uiState.value.copy(isSyncing = true)
             try {
                 val config = sessionRepository.sessionConfig.first() ?: return@launch
@@ -507,8 +514,11 @@ class SwipeViewModel(
                     swipeDecisionRepository.markAsSynced(successfulKeeps, config.userId)
                 }
 
+                AppLogger.i("Swipe", "Synchronisation réussie. ${successfullyDisappeared.size} supprimés/verrouillés, ${successfulKeeps.size} gardés localement.")
+
                 // 4. Feedback utilisateur et rechargement
                 if (failedDeletionsCount > 0) {
+                    AppLogger.w("Swipe", "$failedDeletionsCount échecs de suppression détectés après vérification")
                     _uiState.value = _uiState.value.copy(
                         isSyncing = false,
                         showSummary = false,
@@ -527,6 +537,7 @@ class SwipeViewModel(
                 loadAssetsAndDecisions()
                 
             } catch (e: Exception) {
+                AppLogger.e("Swipe", "Échec lors de l'application des changements", e)
                 _uiState.value = _uiState.value.copy(
                     isSyncing = false,
                     error = "Erreur lors de la synchronisation : ${e.message}"

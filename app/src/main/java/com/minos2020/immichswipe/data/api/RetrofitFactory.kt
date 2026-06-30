@@ -4,6 +4,7 @@ import com.minos2020.immichswipe.core.ConnectionLevel
 import com.minos2020.immichswipe.core.DiagStatus
 import com.minos2020.immichswipe.core.SessionConfig
 import com.minos2020.immichswipe.core.SessionManager
+import com.minos2020.immichswipe.core.AppLogger
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -38,12 +39,15 @@ object RetrofitFactory {
                         SessionManager.updateStatus(ConnectionLevel.ONLINE, DiagStatus.CONNECTED)
                     }
                     401, 403 -> {
+                        AppLogger.e("Retrofit", "Erreur d'authentification: ${response.code}")
                         SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.AUTH_ERROR)
                     }
                     502, 503, 504 -> {
+                        AppLogger.e("Retrofit", "Serveur indisponible: ${response.code}")
                         SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNAVAILABLE, response.code)
                     }
                     else -> {
+                        AppLogger.w("Retrofit", "Réponse inattendue: ${response.code}")
                         SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNEXPECTED, response.code)
                     }
                 }
@@ -55,6 +59,7 @@ object RetrofitFactory {
                     is IOException -> DiagStatus.NO_INTERNET
                     else -> DiagStatus.CONNECTION_ERROR
                 }
+                AppLogger.e("Retrofit", "Erreur réseau: $status", e)
                 SessionManager.updateStatus(ConnectionLevel.OFFLINE, status, rawMessage = e.localizedMessage)
                 throw e
             }

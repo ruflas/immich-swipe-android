@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.minos2020.immichswipe.core.AppTheme
+import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.feature.home.HomeScreen
 import com.minos2020.immichswipe.core.SessionManager
 import com.minos2020.immichswipe.ui.theme.ImmichSwipeTheme
@@ -41,6 +42,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppLogger.init(applicationContext)
+        AppLogger.i("MainActivity", "Application démarrée")
         enableEdgeToEdge()
         
         // On verrouille l'application en mode Portrait par défaut.

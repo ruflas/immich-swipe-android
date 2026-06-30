@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import com.minos2020.immichswipe.core.SessionManager
+import com.minos2020.immichswipe.core.AppLogger
 import kotlinx.coroutines.flow.update
 import com.minos2020.immichswipe.core.PlaybackBehavior
 import com.minos2020.immichswipe.core.AppTheme
@@ -114,11 +115,13 @@ class HomeViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
+                AppLogger.d("Home", "Chargement des données utilisateur et albums")
                 val user = userRepository.getCurrentUser()
                 // SOLUTION : Migration des anciennes données (v3 -> v4) vers l'ID utilisateur réel
                 swipeDecisionRepository.migrateLegacyDecisions(user.id)
 
                 val albums = albumRepository.refreshAlbums(_uiState.value.includeArchived)
+                AppLogger.i("Home", "Utilisateur chargé: ${user.name}, ${albums.size} albums trouvés")
                 _uiState.update { 
                     it.copy(
                         user = user, 
@@ -128,6 +131,7 @@ class HomeViewModel(
                     )
                 }
             } catch (e: Exception) {
+                AppLogger.e("Home", "Erreur lors du chargement initial", e)
                 _uiState.update { 
                     it.copy(
                         error = e.message ?: "Erreur de chargement", 

@@ -131,4 +131,14 @@
     <string name="common_retry">Reintentar</string>
     <string name="common_close">Cerrar</string>
     <string name="common_loading">Cargando…</string>
+
+    <!-- Depuración -->
+    <string name="settings_section_debug">Depuración</string>
+    <string name="settings_view_logs_label">Ver registros locales</string>
+    <string name="settings_view_logs_desc">Consultar o exportar eventos del sistema en caso de problemas</string>
+    <string name="settings_logs_dialog_title">Registros del sistema</string>
+    <string name="settings_logs_copy">Copiar todo</string>
+    <string name="settings_logs_clear">Borrar registros</string>
+    <string name="settings_logs_empty">No hay registros disponibles por el momento.</string>
+    <string name="settings_logs_copied_toast">Registros copiados al portapapeles</string>
 </resources>

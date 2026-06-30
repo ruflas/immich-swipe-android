@@ -144,4 +144,14 @@
     <string name="common_close">Close</string>
     <string name="common_loading">Loading…</string>
     <string name="home_virtual_skipped_synced">SKIPs</string>
+
+    <!-- Debugging -->
+    <string name="settings_section_debug">Debugging</string>
+    <string name="settings_view_logs_label">View local logs</string>
+    <string name="settings_view_logs_desc">View or export system events in case of problems</string>
+    <string name="settings_logs_dialog_title">System Logs</string>
+    <string name="settings_logs_copy">Copy all</string>
+    <string name="settings_logs_clear">Clear logs</string>
+    <string name="settings_logs_empty">No logs available at the moment.</string>
+    <string name="settings_logs_copied_toast">Logs copied to clipboard</string>
 </resources>

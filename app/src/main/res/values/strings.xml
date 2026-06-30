@@ -147,4 +147,14 @@
     <string name="common_close">Fermer</string>
     <string name="common_loading">Chargement…</string>
     <string name="home_virtual_skipped_synced_desc">Collection de tous les assets marqués SKIP et synchronisés</string>
+
+    <!-- Débogage -->
+    <string name="settings_section_debug">Débogage</string>
+    <string name="settings_view_logs_label">Voir les journaux locaux</string>
+    <string name="settings_view_logs_desc">Consulter ou exporter les événements système en cas de problème</string>
+    <string name="settings_logs_dialog_title">Journaux système</string>
+    <string name="settings_logs_copy">Tout copier</string>
+    <string name="settings_logs_clear">Effacer les logs</string>
+    <string name="settings_logs_empty">Aucun journal disponible pour le moment.</string>
+    <string name="settings_logs_copied_toast">Logs copiés dans le presse-papier</string>
 </resources>

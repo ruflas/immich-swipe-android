@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.minos2020.immichswipe.core.SessionConfig
 import com.minos2020.immichswipe.core.SessionManager
+import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.data.repository.AuthRepository
 import com.minos2020.immichswipe.data.repository.SessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,7 +62,7 @@ class AuthViewModel(
     fun login() {
         viewModelScope.launch {
             // Log pour inspecter l'état actuel avant de lancer la connexion
-            Log.d("AUTH_DEBUG", "Tentative de connexion avec l'état : ${_uiState.value}")
+            AppLogger.i("Auth", "Tentative de connexion à ${_uiState.value.baseUrl}")
 
             // On affiche le chargement et on réinitialise les erreurs
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -72,6 +73,7 @@ class AuthViewModel(
 
                 // 1. On demande au Repository de vérifier les identifiants
                 val user = authRepository.checkCredentials(baseUrl, apiKey)
+                AppLogger.i("Auth", "Connexion réussie pour l'utilisateur: ${user.id}")
 
                 // 2. Si on arrive ici, c'est que la connexion a réussi !
                 // On initialise la session globale (SessionManager)
@@ -88,6 +90,7 @@ class AuthViewModel(
                 )
 
             } catch (e: Exception) {
+                AppLogger.e("Auth", "Échec de connexion", e)
                 // En cas d'erreur (mauvais URL, mauvaise clé, pas d'internet...)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
