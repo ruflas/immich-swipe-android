@@ -1,6 +1,7 @@
 package com.minos2020.immichswipe.data.repository
 
 import android.content.Context
+import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.core.AppTheme
 import com.minos2020.immichswipe.core.IconPosition
 import com.minos2020.immichswipe.core.PlaybackBehavior
@@ -8,6 +9,7 @@ import com.minos2020.immichswipe.core.SessionConfig
 import com.minos2020.immichswipe.data.datastore.SessionDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 /**
@@ -151,6 +153,21 @@ class SessionRepository(context: Context) {
     suspend fun saveShowLock(show: Boolean) { dataStore.saveShowLock(show) }
     suspend fun saveAutoNextOnFav(autoNextOnFav: Boolean) { dataStore.saveAutoNextOnFav(autoNextOnFav) }
     suspend fun saveIncludeArchived(include: Boolean) { dataStore.saveIncludeArchived(include) }
+
+    /**
+     * Vérifie si une session partielle existe (ancienne version) et la nettoie.
+     */
+    suspend fun cleanupLegacySession() {
+        val url = dataStore.getBaseUrl().first()
+        val key = dataStore.getApiKey().first()
+        val userId = dataStore.getUserId().first()
+
+        if ((url != null || key != null) && userId == null) {
+            dataStore.clearSession()
+            AppLogger.i("Auth","User ID was missing from the session config, probably due to to upgrading from room v2" +
+                    "A reconnexion is required.")
+        }
+    }
 
     /**
      * Supprime la session actuelle (Déconnexion).

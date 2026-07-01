@@ -2,6 +2,7 @@ package com.minos2020.immichswipe
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.core.AppTheme
 import com.minos2020.immichswipe.core.SessionManager
 import com.minos2020.immichswipe.data.repository.SessionRepository
@@ -43,6 +44,10 @@ class AppViewModel(
                 } else {
                     // Si on reçoit null, on nettoie tout
                     SessionManager.clear()
+
+                    // SOLUTION : Si on vient d'une version v2, on force le nettoyage complet
+                    // pour obliger à une reconnexion propre (multi-compte).
+                    sessionRepository.cleanupLegacySession()
 
                     // On met à jour l'UI : on est déconnecté
                     _uiState.value = _uiState.value.copy(
