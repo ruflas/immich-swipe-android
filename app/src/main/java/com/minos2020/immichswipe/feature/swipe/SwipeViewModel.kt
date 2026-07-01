@@ -488,7 +488,7 @@ class SwipeViewModel(
                 if (toLock.isNotEmpty()) assetRepository.updateAssets(toLock, visibility = "locked")
 
                 // 2. Vérification et mise à jour de la base locale
-                val freshAssets = assetRepository.getAssetsByAlbum(album.id, userId = config.userId)
+                val freshAssets = assetRepository.getAssetsByAlbum(album.id, includeArchived = true, userId = config.userId)
                 val freshIds = freshAssets.map { it.id }.toSet()
 
                 // - Identification des succès (ceux qui ont disparu de l'album)
