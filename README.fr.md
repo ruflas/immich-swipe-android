@@ -75,3 +75,11 @@ Si vous souhaitez compiler l'application vous-même :
 ## 📄 Licence
 
 Ce projet est sous licence GNU GPL v3. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+## ⚖️ Responsabilité
+
+Bien que ce projet soit développé avec le plus grand soin et testé régulièrement, je ne peux garantir la sécurité absolue de vos données. En utilisant Immich Swipe, vous acceptez que l'auteur ne puisse être tenu responsable en cas de perte de données ou de suppression involontaire de médias.
+
+Il est important de noter que :
+- **Sécurité de la corbeille** : Immich Swipe ne vide jamais la corbeille de votre serveur Immich. En cas d'erreur de tri, vos photos restent récupérables via l'interface officielle d'Immich pendant la durée de conservation configurée de la corbeille.
+- **Principe de moindre privilège** : Afin de minimiser les risques, il est vivement conseillé de ne configurer votre clé API qu'avec les permissions strictement nécessaires listées dans la section [Configuration](#⚙️-configuration).

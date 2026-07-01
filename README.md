@@ -75,3 +75,11 @@ If you want to compile the application yourself:
 ## 📄 License
 
 This project is licensed under the GNU GPL v3. See the [LICENSE](LICENSE) file for more details.
+
+## ⚖️ Disclaimer
+
+While this project is developed with care and tested regularly, I cannot guarantee absolute data safety. By using Immich Swipe, you acknowledge that the author shall not be held liable for any data loss or accidental deletion of media.
+
+Please keep in mind:
+- **Trash Safety**: Immich Swipe never empties the trash on your Immich server. If you make a mistake while sorting, your photos remain recoverable through the official Immich interface during the configured trash retention period.
+- **Principle of Least Privilege**: To minimize risks, it is highly recommended to configure your API key with only the strictly required permissions listed in the [Configuration](#⚙️-configuration) section.
