@@ -9,6 +9,15 @@
     <string name="login_button">Se connecter</string>
     <string name="login_success">Connexion réussie ✔</string>
     <string name="login_error_unknown">Une erreur inconnue est survenue</string>
+    <string name="login_error_empty">L\'URL et la clé API sont requises</string>
+    <string name="login_error_dns">Serveur introuvable. Vérifiez l\'URL ou votre DNS.</string>
+    <string name="login_error_timeout">Le serveur met trop de temps à répondre (Timeout).</string>
+    <string name="login_error_refused">Connexion refusée. Le serveur est-il allumé et le port ouvert ?</string>
+    <string name="login_error_auth">Clé API invalide ou non autorisée.</string>
+    <string name="login_error_forbidden">Accès refusé. Vérifiez vos permissions sur Immich.</string>
+    <string name="login_error_not_found">URL incorrecte : Immich ne semble pas installé à cette adresse.</string>
+    <string name="login_error_server">Erreur interne du serveur Immich (%1$d).</string>
+    <string name="login_error_ssl">Erreur SSL/HTTPS. Vérifiez votre certificat ou utilisez http (si supporté).</string>
 
     <!-- Navigation -->
     <string name="nav_home">Accueil</string>

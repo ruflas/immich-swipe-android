@@ -31,24 +31,31 @@ object RetrofitFactory {
 
         // SOLUTION : Intercepteur de Diagnostic intelligent sur TOUTES les requêtes réseau
         val connectivityInterceptor = Interceptor { chain ->
+            val request = chain.request()
+            val urlPath = request.url.encodedPath
             try {
-                val response = chain.proceed(chain.request())
+                val response = chain.proceed(request)
                 
                 when (response.code) {
                     in 200..299 -> {
                         SessionManager.updateStatus(ConnectionLevel.ONLINE, DiagStatus.CONNECTED)
                     }
                     401, 403 -> {
-                        AppLogger.e("Retrofit", "Erreur d'authentification: ${response.code}")
+                        AppLogger.e("Retrofit", "Erreur d'authentification (${response.code}) sur $urlPath")
                         SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.AUTH_ERROR)
                     }
+                    404 -> {
+                        AppLogger.e("Retrofit", "Ressource non trouvée (404) sur $urlPath. Vérifiez l'URL du serveur.")
+                    }
                     502, 503, 504 -> {
-                        AppLogger.e("Retrofit", "Serveur indisponible: ${response.code}")
+                        AppLogger.e("Retrofit", "Serveur indisponible (${response.code}) sur $urlPath")
                         SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNAVAILABLE, response.code)
                     }
                     else -> {
-                        AppLogger.w("Retrofit", "Réponse inattendue: ${response.code}")
-                        SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNEXPECTED, response.code)
+                        if (response.code >= 400) {
+                            AppLogger.w("Retrofit", "Réponse inattendue (${response.code}) sur $urlPath")
+                            SessionManager.updateStatus(ConnectionLevel.ISSUES, DiagStatus.UNEXPECTED, response.code)
+                        }
                     }
                 }
                 response
@@ -59,7 +66,7 @@ object RetrofitFactory {
                     is IOException -> DiagStatus.NO_INTERNET
                     else -> DiagStatus.CONNECTION_ERROR
                 }
-                AppLogger.e("Retrofit", "Erreur réseau: $status", e)
+                AppLogger.e("Retrofit", "Erreur réseau ($status) sur $urlPath: ${e.message}", e)
                 SessionManager.updateStatus(ConnectionLevel.OFFLINE, status, rawMessage = e.localizedMessage)
                 throw e
             }
@@ -72,8 +79,11 @@ object RetrofitFactory {
             .build()
 
         // Configure Retrofit avec l'URL de base, le client HTTP et le convertisseur JSON (Gson).
+        // On s'assure que l'URL se termine par un slash pour Retrofit.
+        val sanitizedUrl = if (config.baseUrl.endsWith("/")) config.baseUrl else "${config.baseUrl}/"
+        
         val retrofit = Retrofit.Builder()
-            .baseUrl(config.baseUrl)
+            .baseUrl(sanitizedUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()

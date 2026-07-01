@@ -113,9 +113,21 @@ fun AuthScreen(
                     visible = state.error != null,
                     enter = fadeIn() + expandVertically()
                 ) {
-                    state.error?.let {
+                    state.error?.let { error ->
+                        val errorMessage = when (error) {
+                            AuthError.EmptyFields -> stringResource(R.string.login_error_empty)
+                            AuthError.Dns -> stringResource(R.string.login_error_dns)
+                            AuthError.Timeout -> stringResource(R.string.login_error_timeout)
+                            AuthError.Refused -> stringResource(R.string.login_error_refused)
+                            AuthError.Auth -> stringResource(R.string.login_error_auth)
+                            AuthError.Forbidden -> stringResource(R.string.login_error_forbidden)
+                            AuthError.NotFound -> stringResource(R.string.login_error_not_found)
+                            AuthError.Ssl -> stringResource(R.string.login_error_ssl)
+                            is AuthError.Server -> stringResource(R.string.login_error_server, error.code)
+                            is AuthError.Unknown -> error.message ?: stringResource(R.string.login_error_unknown)
+                        }
                         Text(
-                            text = it,
+                            text = errorMessage,
                             color = MaterialTheme.colorScheme.error,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(top = 8.dp)

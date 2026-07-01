@@ -1,11 +1,10 @@
 package com.minos2020.immichswipe.feature.auth
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.core.SessionConfig
 import com.minos2020.immichswipe.core.SessionManager
-import com.minos2020.immichswipe.core.AppLogger
 import com.minos2020.immichswipe.data.repository.AuthRepository
 import com.minos2020.immichswipe.data.repository.SessionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,40 +60,54 @@ class AuthViewModel(
      */
     fun login() {
         viewModelScope.launch {
-            // Log pour inspecter l'état actuel avant de lancer la connexion
-            AppLogger.i("Auth", "Tentative de connexion à ${_uiState.value.baseUrl}")
+            val baseUrl = _uiState.value.baseUrl.trim()
+            val apiKey = _uiState.value.apiKey.trim()
 
-            // On affiche le chargement et on réinitialise les erreurs
+            AppLogger.i("Auth", "Tentative de connexion à $baseUrl")
+
+            // Validation basique
+            if (baseUrl.isEmpty() || apiKey.isEmpty()) {
+                _uiState.value = _uiState.value.copy(error = AuthError.EmptyFields)
+                return@launch
+            }
+
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             try {
-                val baseUrl = _uiState.value.baseUrl.trim()
-                val apiKey = _uiState.value.apiKey.trim()
-
                 // 1. On demande au Repository de vérifier les identifiants
                 val user = authRepository.checkCredentials(baseUrl, apiKey)
-                AppLogger.i("Auth", "Connexion réussie pour l'utilisateur: ${user.id}")
+                AppLogger.i("Auth", "Identifiants valides. Utilisateur: ${user.name} (${user.id})")
 
                 // 2. Si on arrive ici, c'est que la connexion a réussi !
-                // On initialise la session globale (SessionManager)
                 val config = SessionConfig(baseUrl = baseUrl, apiKey = apiKey, userId = user.id)
                 SessionManager.initialize(config)
 
-                // 3. On sauvegarde la session dans le stockage local (DataStore)
+                // 3. On sauvegarde la session
                 sessionRepository.saveSession(baseUrl = baseUrl, token = apiKey, userId = user.id)
 
-                // 4. On met à jour l'UI pour signaler le succès
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    success = true
-                )
+                _uiState.value = _uiState.value.copy(isLoading = false, success = true)
 
             } catch (e: Exception) {
-                AppLogger.e("Auth", "Échec de connexion", e)
-                // En cas d'erreur (mauvais URL, mauvaise clé, pas d'internet...)
+                val error = when (e) {
+                    is java.net.UnknownHostException -> AuthError.Dns
+                    is java.net.SocketTimeoutException -> AuthError.Timeout
+                    is java.net.ConnectException -> AuthError.Refused
+                    is retrofit2.HttpException -> {
+                        when (e.code()) {
+                            401 -> AuthError.Auth
+                            403 -> AuthError.Forbidden
+                            404 -> AuthError.NotFound
+                            else -> AuthError.Server(e.code())
+                        }
+                    }
+                    is javax.net.ssl.SSLHandshakeException -> AuthError.Ssl
+                    else -> AuthError.Unknown(e.localizedMessage)
+                }
+
+                AppLogger.e("Auth", "Échec de connexion : $error", e)
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Une erreur inconnue est survenue"
+                    error = error
                 )
             }
         }

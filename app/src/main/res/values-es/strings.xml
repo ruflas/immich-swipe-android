@@ -8,6 +8,15 @@
     <string name="login_button">Iniciar sesión</string>
     <string name="login_success">Sesión iniciada ✔</string>
     <string name="login_error_unknown">Se ha producido un error desconocido</string>
+    <string name="login_error_empty">La URL y la clave API son requeridas</string>
+    <string name="login_error_dns">Servidor no encontrado. Verifique la URL o su DNS.</string>
+    <string name="login_error_timeout">El servidor tardó demasiado en responder (Timeout).</string>
+    <string name="login_error_refused">Conexión rechazada. ¿Está el servidor encendido y el puerto abierto?</string>
+    <string name="login_error_auth">Clave API inválida o no autorizada.</string>
+    <string name="login_error_forbidden">Acceso denegado. Verifique sus permisos en Immich.</string>
+    <string name="login_error_not_found">URL incorrecta: Immich no parece estar instalado en esta dirección.</string>
+    <string name="login_error_server">Error interno del servidor Immich (%1$d).</string>
+    <string name="login_error_ssl">Error SSL/HTTPS. Verifique su certificado o use http (si es compatible).</string>
 
     <!-- Navegación -->
     <string name="nav_home">Inicio</string>

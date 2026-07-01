@@ -8,6 +8,15 @@
     <string name="login_button">Login</string>
     <string name="login_success">Login successful ✔</string>
     <string name="login_error_unknown">An unknown error occurred</string>
+    <string name="login_error_empty">URL and API Key are required</string>
+    <string name="login_error_dns">Server not found. Check the URL or your DNS.</string>
+    <string name="login_error_timeout">Server took too long to respond (Timeout).</string>
+    <string name="login_error_refused">Connection refused. Is the server running and the port open?</string>
+    <string name="login_error_auth">Invalid or unauthorized API Key.</string>
+    <string name="login_error_forbidden">Access denied. Check your permissions on Immich.</string>
+    <string name="login_error_not_found">Incorrect URL: Immich does not seem to be installed at this address.</string>
+    <string name="login_error_server">Internal Immich server error (%1$d).</string>
+    <string name="login_error_ssl">SSL/HTTPS error. Check your certificate or use http (if supported).</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
