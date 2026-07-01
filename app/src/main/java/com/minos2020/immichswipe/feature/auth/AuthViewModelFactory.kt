@@ -14,6 +14,7 @@ class AuthViewModelFactory(
         // Vérifie si la classe demandée est bien AuthViewModel
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
             // Crée l'instance avec les deux repositories requis
+            @Suppress("UNCHECKED_CAST")
             return AuthViewModel(sessionRepository, authRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel")

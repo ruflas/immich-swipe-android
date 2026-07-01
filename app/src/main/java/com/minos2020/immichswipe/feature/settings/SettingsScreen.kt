@@ -31,6 +31,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import com.minos2020.immichswipe.R
 import com.minos2020.immichswipe.core.AppTheme
 import com.minos2020.immichswipe.core.IconPosition
@@ -42,7 +43,8 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+    val clipboard = androidx.compose.ui.platform.LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -514,7 +516,10 @@ fun SettingsScreen(
             confirmButton = {
                 TextButton(onClick = { 
                     val logs = viewModel.getLogs()
-                    clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(logs))
+                    scope.launch {
+                        val clipData = android.content.ClipData.newPlainText("Immich Swipe Logs", logs)
+                        clipboard.setClipEntry(androidx.compose.ui.platform.ClipEntry(clipData))
+                    }
                     android.widget.Toast.makeText(context, context.getString(R.string.settings_logs_copied_toast), android.widget.Toast.LENGTH_SHORT).show()
                 }) {
                     Text(stringResource(R.string.settings_logs_copy))

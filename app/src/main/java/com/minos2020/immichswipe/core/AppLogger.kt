@@ -18,14 +18,14 @@ object AppLogger {
     private const val PREVIOUS_LOG_FILE = "previous_logs.txt"
     private const val MAX_FILE_SIZE = 1024 * 1024 // 1 MB
     
-    private var context: Context? = null
+    private var logsDir: File? = null
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
     /**
      * Initialise le logger avec le contexte de l'application.
      */
     fun init(context: Context) {
-        this.context = context.applicationContext
+        this.logsDir = context.applicationContext.filesDir
         writeRaw("\n\n" + "=".repeat(50) + "\n" + "   NEW SESSION START   \n" + "=".repeat(50) + "\n\n")
     }
 
@@ -51,9 +51,9 @@ object AppLogger {
 
     @Synchronized
     private fun writeRaw(text: String) {
-        val ctx = context ?: return
+        val dir = logsDir ?: return
         try {
-            val currentFile = File(ctx.filesDir, CURRENT_LOG_FILE)
+            val currentFile = File(dir, CURRENT_LOG_FILE)
             FileOutputStream(currentFile, true).use {
                 it.write(text.toByteArray())
             }
@@ -64,14 +64,14 @@ object AppLogger {
 
     @Synchronized
     private fun write(level: String, tag: String, message: String) {
-        val ctx = context ?: return
+        val dir = logsDir ?: return
         
         try {
-            val currentFile = File(ctx.filesDir, CURRENT_LOG_FILE)
+            val currentFile = File(dir, CURRENT_LOG_FILE)
             
             // Rotation des fichiers si le fichier actuel dépasse 1 Mo
             if (currentFile.exists() && currentFile.length() > MAX_FILE_SIZE) {
-                val previousFile = File(ctx.filesDir, PREVIOUS_LOG_FILE)
+                val previousFile = File(dir, PREVIOUS_LOG_FILE)
                 if (previousFile.exists()) previousFile.delete()
                 currentFile.renameTo(previousFile)
             }
@@ -91,9 +91,9 @@ object AppLogger {
      * Récupère l'intégralité des logs stockés (actuels et précédents).
      */
     fun getLogs(): String {
-        val ctx = context ?: return "Logger not initialized"
-        val currentFile = File(ctx.filesDir, CURRENT_LOG_FILE)
-        val previousFile = File(ctx.filesDir, PREVIOUS_LOG_FILE)
+        val dir = logsDir ?: return "Logger not initialized"
+        val currentFile = File(dir, CURRENT_LOG_FILE)
+        val previousFile = File(dir, PREVIOUS_LOG_FILE)
         
         val logs = StringBuilder()
         if (previousFile.exists()) {
@@ -122,10 +122,10 @@ object AppLogger {
      * Supprime tous les fichiers de logs locaux.
      */
     fun clearLogs() {
-        val ctx = context ?: return
+        val dir = logsDir ?: return
         try {
-            File(ctx.filesDir, CURRENT_LOG_FILE).delete()
-            File(ctx.filesDir, PREVIOUS_LOG_FILE).delete()
+            File(dir, CURRENT_LOG_FILE).delete()
+            File(dir, PREVIOUS_LOG_FILE).delete()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to clear logs", e)
         }
