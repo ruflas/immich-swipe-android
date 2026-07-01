@@ -539,6 +539,7 @@ fun AssetTimeline(
     isLocked: (String) -> Boolean,
     onAssetClick: (Int) -> Unit
 ) {
+    val context = LocalContext.current
     val listState = rememberLazyListState()
 
     LaunchedEffect(currentIndex) {
@@ -575,11 +576,19 @@ fun AssetTimeline(
                     .clickable { onAssetClick(index) }
             ) {
                 val baseUrl = SessionManager.getBaseUrl()?.removeSuffix("/")
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
+                val apiKey = SessionManager.getApiKey() ?: ""
+                val thumbnailRequest = remember(asset.id, baseUrl, apiKey) {
+                    ImageRequest.Builder(context)
                         .data("$baseUrl/api/assets/${asset.id}/thumbnail?format=WEBP")
-                        .addHeader("x-api-key", SessionManager.getApiKey() ?: "")
-                        .build(),
+                        .addHeader("x-api-key", apiKey)
+                        .crossfade(true)
+                        .precision(coil.size.Precision.INEXACT)
+                        .memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                        .diskCachePolicy(coil.request.CachePolicy.ENABLED)
+                        .build()
+                }
+                AsyncImage(
+                    model = thumbnailRequest,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize().alpha(if (isCurrent) 1f else 0.6f)
@@ -869,23 +878,32 @@ fun SwipeCard(
                         }
                     } else {
                         // Image de remplacement pendant que le player est utilisé en plein écran
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
+                        val placeholderRequest = remember(asset.id, baseUrl, apiKey) {
+                            ImageRequest.Builder(context)
                                 .data("$baseUrl/api/assets/${asset.id}/thumbnail?format=JPEG&size=preview")
                                 .addHeader("x-api-key", apiKey)
-                                .build(),
+                                .crossfade(true)
+                                .precision(coil.size.Precision.INEXACT)
+                                .build()
+                        }
+                        AsyncImage(
+                            model = placeholderRequest,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
                 } else {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
+                    val photoRequest = remember(asset.id, baseUrl, apiKey) {
+                        ImageRequest.Builder(context)
                             .data("$baseUrl/api/assets/${asset.id}/thumbnail?format=JPEG&size=preview")
                             .addHeader("x-api-key", apiKey)
                             .crossfade(true)
-                            .build(),
+                            .precision(coil.size.Precision.INEXACT)
+                            .build()
+                    }
+                    AsyncImage(
+                        model = photoRequest,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -1396,12 +1414,22 @@ fun DeletedAssetThumbnail(
     onUndo: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val baseUrl = SessionManager.getBaseUrl()?.removeSuffix("/")
     val apiKey = SessionManager.getApiKey() ?: ""
     
     val hasHeart = uiState.isFavorite(asset.id)
     val hasArchive = asset.isArchived
     val hasLock = asset.isLocked
+
+    val imageRequest = remember(asset.id, baseUrl, apiKey) {
+        ImageRequest.Builder(context)
+            .data("$baseUrl/api/assets/${asset.id}/thumbnail?format=WEBP")
+            .addHeader("x-api-key", apiKey)
+            .crossfade(true)
+            .precision(coil.size.Precision.INEXACT)
+            .build()
+    }
 
     Box(
         modifier = modifier
@@ -1410,10 +1438,7 @@ fun DeletedAssetThumbnail(
             .clickable { onUndo() }
     ) {
         AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data("$baseUrl/api/assets/${asset.id}/thumbnail?format=WEBP")
-                .addHeader("x-api-key", apiKey)
-                .build(),
+            model = imageRequest,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
